@@ -602,18 +602,21 @@ function GameLogic({ house }: { house: HouseName }) {
       const landStart = isCapture ? 0.36 : 0.4;
       tl.to(movingMesh.position, { y: 0, duration: 0.2, ease: 'land' }, landStart);
 
-      // 5. Squash on impact
+      // 5. Squash-and-stretch on impact: squash → overshoot tall → elastic settle
+      const impactAt = landStart + 0.16;
       tl.to(
         movingMesh.scale,
-        { y: 0.82, x: 1.12, z: 1.12, duration: 0.07, ease: 'power2.in' },
-        landStart + 0.16,
-      ).to(movingMesh.scale, {
-        y: 1.0,
-        x: 1.0,
-        z: 1.0,
-        duration: 0.14,
-        ease: 'elastic.out(1.2, 0.4)',
-      });
+        { y: 0.6, x: 1.3, z: 1.3, duration: 0.06, ease: 'power3.in' },
+        impactAt,
+      )
+        .to(movingMesh.scale, { y: 1.15, x: 0.92, z: 0.92, duration: 0.12, ease: 'power2.out' })
+        .to(movingMesh.scale, {
+          y: 1.0,
+          x: 1.0,
+          z: 1.0,
+          duration: 0.2,
+          ease: 'elastic.out(1, 0.4)',
+        });
     },
     [playCaptureAnimation, reconcilePieces],
   );

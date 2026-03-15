@@ -16,6 +16,17 @@
 
 import { useRef, useEffect, useMemo, useCallback } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import gsap from 'gsap';
+import { CustomEase } from 'gsap/CustomEase';
+gsap.registerPlugin(CustomEase);
+
+// ── GSAP custom eases ────────────────────────────────────────────────────────
+// Pickup: tiny anticipation dip then arc upward
+CustomEase.create('pickup', 'M0,0 C0.1,-0.08 0.2,-0.12 0.3,0.04 0.5,0.3 0.7,1.05 0.85,1.02 1,1');
+// Land: fast fall, elastic micro-bounce settle
+CustomEase.create('land', 'M0,0 C0.2,0 0.4,0.8 0.6,1.02 0.75,1.05 0.85,0.98 1,1');
+// Slam: violent deceleration into hard stop (capture moves)
+CustomEase.create('slam', 'M0,0 C0.05,0 0.1,0.9 0.3,1.03 0.5,1.06 0.7,0.99 1,1');
 import { OrbitControls, Environment, ContactShadows, Sparkles } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
@@ -34,7 +45,6 @@ import type { HouseName } from '../../../shared/src/index';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const ANIM_DURATION = 0.35;
 const ARC_HEIGHT = 1.8;
 const CANDLE_COUNT = 12;
 const CANDLE_RADIUS = 5.5;
@@ -56,10 +66,6 @@ interface PieceUserData {
   square: Square;
   pieceType: PieceSymbol;
   pieceColor: Color;
-  animating: boolean;
-  animProgress: number;
-  animStart: THREE.Vector3;
-  animTarget: THREE.Vector3;
 }
 
 type PieceObject = THREE.Group & { userData: PieceUserData };
@@ -354,17 +360,7 @@ function GameLogic({ house }: { house: HouseName }) {
       const [x, z] = squareToXZ(sq);
       const group = createPieceGroup(type, color, house) as PieceObject;
       group.position.set(x, 0, z);
-      group.userData = {
-        square: sq,
-        pieceType: type,
-        pieceColor: color,
-        animating: false,
-        animProgress: 0,
-        animStart: new THREE.Vector3(),
-        animTarget: new THREE.Vector3(),
-      };
-      // Centre the lathe geometry vertically — lathe origin is at y=0 (base)
-      // so no offset needed; set group y = 0, pieces sit on board.
+      group.userData = { square: sq, pieceType: type, pieceColor: color };
       void h;
       return group;
     },
@@ -552,15 +548,72 @@ function GameLogic({ house }: { house: HouseName }) {
       movingMesh.userData.square = toSq;
       reconcilePieces(toSq);
 
-      movingMesh.userData.animating = true;
-      movingMesh.userData.animProgress = 0;
-      movingMesh.userData.animStart.copy(movingMesh.position);
-      movingMesh.userData.animTarget.set(tx, 0, tz);
-
       if (!isCapture) soundsRef.current?.move.play();
       if (chessRef.current.inCheck()) soundsRef.current?.check.play();
 
-      animInProgress.current = false;
+      // Kill any in-flight tween on this piece before starting a new one
+      gsap.killTweensOf(movingMesh.position);
+      gsap.killTweensOf(movingMesh.rotation);
+      gsap.killTweensOf(movingMesh.scale);
+
+      const fromY = movingMesh.position.y;
+      // Travel direction for lean axis
+      const dx = tx - movingMesh.position.x;
+      const dz = tz - movingMesh.position.z;
+      const dist = Math.sqrt(dx * dx + dz * dz) || 1;
+      // Lean axis = perpendicular to travel dir in XZ plane
+      const lx = -dz / dist;
+      const lz = dx / dist;
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          movingMesh.scale.set(1, 1, 1);
+          movingMesh.rotation.set(0, 0, 0);
+          animInProgress.current = false;
+        },
+      });
+
+      // 1. Anticipation dip + lift off
+      tl.to(movingMesh.position, { y: fromY - 0.04, duration: 0.06, ease: 'power2.in' }).to(
+        movingMesh.position,
+        { y: ARC_HEIGHT, duration: 0.18, ease: 'pickup' },
+      );
+
+      // 2. Horizontal travel — overlaps with the lift
+      tl.to(
+        movingMesh.position,
+        {
+          x: tx,
+          z: tz,
+          duration: isCapture ? 0.38 : 0.42,
+          ease: isCapture ? 'slam' : 'power2.inOut',
+        },
+        0.06,
+      );
+
+      // 3. Forward lean during travel (peaks at mid-arc, returns on land)
+      tl.to(
+        movingMesh.rotation,
+        { x: lx * 0.2, z: lz * 0.2, duration: 0.2, ease: 'power1.inOut' },
+        0.06,
+      ).to(movingMesh.rotation, { x: 0, z: 0, duration: 0.18, ease: 'power2.out' }, 0.26);
+
+      // 4. Land — fast drop, elastic settle
+      const landStart = isCapture ? 0.36 : 0.4;
+      tl.to(movingMesh.position, { y: 0, duration: 0.2, ease: 'land' }, landStart);
+
+      // 5. Squash on impact
+      tl.to(
+        movingMesh.scale,
+        { y: 0.82, x: 1.12, z: 1.12, duration: 0.07, ease: 'power2.in' },
+        landStart + 0.16,
+      ).to(movingMesh.scale, {
+        y: 1.0,
+        x: 1.0,
+        z: 1.0,
+        duration: 0.14,
+        ease: 'elastic.out(1.2, 0.4)',
+      });
     },
     [playCaptureAnimation, reconcilePieces],
   );
@@ -655,43 +708,7 @@ function GameLogic({ house }: { house: HouseName }) {
   // ── RAF loop ───────────────────────────────────────────────────────────────
 
   useFrame((_, delta) => {
-    // Animate piece movement — ease-in-out arc with lean + landing squash
-    for (const mesh of pieceMeshes.current.values()) {
-      if (!mesh.userData.animating) continue;
-      mesh.userData.animProgress = Math.min(mesh.userData.animProgress + delta / ANIM_DURATION, 1);
-      const raw = mesh.userData.animProgress;
-
-      // Cubic ease-in-out: smooth start and end
-      const t = raw < 0.5 ? 4 * raw * raw * raw : 1 - Math.pow(-2 * raw + 2, 3) / 2;
-
-      // Horizontal position (eased)
-      mesh.position.lerpVectors(mesh.userData.animStart, mesh.userData.animTarget, t);
-
-      // Vertical arc: sine bell, scaled so peak is at t=0.5
-      // Extra squash on landing: compress Y when t > 0.85
-      const arcY = Math.sin(t * Math.PI) * ARC_HEIGHT;
-      const squash = t > 0.88 ? 1 - ((t - 0.88) / 0.12) * 0.18 : 1.0; // slight squash on touch-down
-      mesh.position.y += arcY;
-      mesh.scale.y = squash;
-      mesh.scale.x = t > 0.88 ? 1 + ((t - 0.88) / 0.12) * 0.1 : 1.0; // widen when squashing
-      mesh.scale.z = mesh.scale.x;
-
-      // Lean forward in travel direction (tilt peaks at mid-arc, settles on land)
-      const travelDir = new THREE.Vector3()
-        .subVectors(mesh.userData.animTarget, mesh.userData.animStart)
-        .setY(0)
-        .normalize();
-      const leanAmount = Math.sin(t * Math.PI) * 0.22; // radians, peaks mid-arc
-      // Rotate around the axis perpendicular to travel direction
-      const leanAxis = new THREE.Vector3(-travelDir.z, 0, travelDir.x);
-      mesh.quaternion.setFromAxisAngle(leanAxis, leanAmount);
-
-      if (raw >= 1) {
-        mesh.userData.animating = false;
-        mesh.scale.set(1, 1, 1);
-        mesh.quaternion.identity();
-      }
-    }
+    // Piece movement is handled entirely by GSAP — no manual lerp needed here.
 
     // Tick spell effects
     for (let i = activeEffects.current.length - 1; i >= 0; i--) {

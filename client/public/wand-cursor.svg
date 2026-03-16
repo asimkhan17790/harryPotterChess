@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Wand shaft -->
+  <line x1="2" y1="30" x2="22" y2="10" stroke="#c8a060" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Wand tip glow rings -->
+  <circle cx="23" cy="9" r="3.5" fill="none" stroke="#ffe066" stroke-width="1.2" opacity="0.7"/>
+  <circle cx="23" cy="9" r="1.8" fill="#ffffff" opacity="0.9"/>
+  <!-- Sparkle cross at tip -->
+  <line x1="23" y1="4" x2="23" y2="14" stroke="#fff4a0" stroke-width="0.8" opacity="0.8"/>
+  <line x1="18" y1="9" x2="28" y2="9" stroke="#fff4a0" stroke-width="0.8" opacity="0.8"/>
+  <line x1="19.5" y1="5.5" x2="26.5" y2="12.5" stroke="#ffe066" stroke-width="0.6" opacity="0.6"/>
+  <line x1="26.5" y1="5.5" x2="19.5" y2="12.5" stroke="#ffe066" stroke-width="0.6" opacity="0.6"/>
+</svg>

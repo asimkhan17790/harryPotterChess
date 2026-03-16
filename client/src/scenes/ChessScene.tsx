@@ -35,15 +35,8 @@ import {
   Sparkles,
   MeshReflectorMaterial,
 } from '@react-three/drei';
-import {
-  EffectComposer,
-  Bloom,
-  ChromaticAberration,
-  Vignette,
-  DepthOfField,
-} from '@react-three/postprocessing';
+import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
-import type { DepthOfFieldEffect } from 'postprocessing';
 import * as THREE from 'three';
 import { Chess } from 'chess.js';
 import type { Color, PieceSymbol, Square } from 'chess.js';
@@ -347,11 +340,9 @@ function FloatingCandles({ candleColor }: { candleColor: number }) {
 function GameLogic({
   house,
   controlsRef,
-  dofTargetRef,
 }: {
   house: HouseName;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
-  dofTargetRef: React.MutableRefObject<number>;
 }) {
   const theme = HOUSE_THEMES[house];
   const { scene, camera, gl } = useThree();
@@ -821,13 +812,6 @@ function GameLogic({
         for (const [rsq, rimOff] of rimUniformsMap.current) {
           if (rsq !== sq) gsap.to(rimOff.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
-        // DoF — tighten focus slightly toward selected piece
-        const selMesh = pieceMeshes.current.get(sq);
-        if (selMesh) {
-          // Map world distance (~8–20 units) to focusDistance range 0.02–0.06
-          const dist = camera.position.distanceTo(selMesh.position);
-          dofTargetRef.current = Math.max(0.02, Math.min(0.06, dist / 400));
-        }
       } else {
         clearHighlights();
         selectedSquare.current = null;
@@ -836,8 +820,6 @@ function GameLogic({
         for (const rim of rimUniformsMap.current.values()) {
           gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
-        // DoF — return to default board focus
-        dofTargetRef.current = 0.035;
       }
     },
     [
@@ -887,42 +869,76 @@ function GameLogic({
   );
 }
 
-// ── Dynamic depth of field ────────────────────────────────────────────────────
+// ── Wand cursor light ─────────────────────────────────────────────────────────
 
 /**
- * Lerps the DepthOfField focusDistance each frame toward a shared target ref.
- * Using useFrame + direct property mutation avoids GSAP's inability to tween
- * the postprocessing getter/setter.
+ * A point light + tiny sparkle sphere that follows the mouse projected onto
+ * the board plane (y=0). Gives the illusion that the wand tip illuminates
+ * whatever it hovers over.
  */
-function DynamicDOF({ targetRef }: { targetRef: React.MutableRefObject<number> }) {
-  const effectRef = useRef<DepthOfFieldEffect | null>(null);
+function WandLight() {
+  const lightRef = useRef<THREE.PointLight>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
+  const targetPos = useRef(new THREE.Vector3(0, 1.2, 0));
+  const raycaster = useMemo(() => new THREE.Raycaster(), []);
+  const boardPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
+  const pointer = useMemo(() => new THREE.Vector2(), []);
+  const hitPoint = useMemo(() => new THREE.Vector3(), []);
+  const { camera, gl } = useThree();
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      const rect = gl.domElement.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      if (raycaster.ray.intersectPlane(boardPlane, hitPoint)) {
+        // Float the light just above the board
+        targetPos.current.set(hitPoint.x, 1.2, hitPoint.z);
+      }
+    };
+    gl.domElement.addEventListener('mousemove', onMove);
+    return () => gl.domElement.removeEventListener('mousemove', onMove);
+  }, [camera, gl.domElement, raycaster, boardPlane, pointer, hitPoint]);
 
   useFrame((_, delta) => {
-    const effect = effectRef.current;
-    if (!effect) return;
-    const current = effect.cocMaterial.uniforms.focusDistance.value as number;
-    const target = targetRef.current;
-    const lerped = current + (target - current) * Math.min(1, delta * 6);
-    effect.cocMaterial.uniforms.focusDistance.value = lerped;
+    const t = Math.min(1, delta * 14); // fast lerp for snappy follow
+    if (lightRef.current) {
+      lightRef.current.position.lerp(targetPos.current, t);
+    }
+    if (glowRef.current) {
+      glowRef.current.position.lerp(targetPos.current, t);
+      // Gentle pulse
+      const s = 0.9 + Math.sin(performance.now() * 0.006) * 0.15;
+      glowRef.current.scale.setScalar(s);
+    }
   });
 
   return (
-    <DepthOfField
-      ref={effectRef}
-      focusDistance={0.035}
-      focalLength={0.2}
-      bokehScale={0.8}
-      blendFunction={BlendFunction.NORMAL}
-    />
+    <>
+      {/* Illuminating point light */}
+      <pointLight
+        ref={lightRef}
+        color={0xfff4a0}
+        intensity={1.8}
+        distance={5}
+        decay={2}
+        position={[0, 1.2, 0]}
+      />
+      {/* Tiny glowing sprite at wand tip projection */}
+      <mesh ref={glowRef} position={[0, 1.2, 0]}>
+        <sphereGeometry args={[0.055, 8, 8]} />
+        <meshBasicMaterial color={0xffffc0} transparent opacity={0.7} depthWrite={false} />
+      </mesh>
+    </>
   );
 }
 
 // ── Post-processing ──────────────────────────────────────────────────────────
 
-function PostFX({ dofTargetRef }: { dofTargetRef: React.MutableRefObject<number> }) {
+function PostFX() {
   return (
     <EffectComposer>
-      <DynamicDOF targetRef={dofTargetRef} />
       <Bloom
         intensity={0.2}
         luminanceThreshold={0.9}
@@ -947,8 +963,6 @@ export default function ChessScene() {
   const theme = HOUSE_THEMES[house as HouseName];
 
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
-  // Shared mutable target for DoF focus distance — starts at board focus depth
-  const dofTargetRef = useRef(0.035);
 
   return (
     <div style={{ width: '100%', height: '100vh' }}>
@@ -1000,6 +1014,9 @@ export default function ChessScene() {
         {/* Floating candles */}
         <FloatingCandles candleColor={theme.candleColor} />
 
+        {/* Wand cursor light — follows mouse across board */}
+        <WandLight />
+
         {/* Contact shadows — tight scale to avoid the ring artifact */}
         <ContactShadows
           position={[0, 0.02, 0]}
@@ -1012,11 +1029,7 @@ export default function ChessScene() {
         />
 
         {/* All game logic + board + pieces */}
-        <GameLogic
-          house={house as HouseName}
-          controlsRef={controlsRef}
-          dofTargetRef={dofTargetRef}
-        />
+        <GameLogic house={house as HouseName} controlsRef={controlsRef} />
 
         {/* Camera controls */}
         <OrbitControls
@@ -1032,7 +1045,7 @@ export default function ChessScene() {
         />
 
         {/* Post-processing */}
-        <PostFX dofTargetRef={dofTargetRef} />
+        <PostFX />
       </Canvas>
     </div>
   );

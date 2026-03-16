@@ -14,7 +14,8 @@
  * Pieces: LatheGeometry silhouettes via PieceFactory (no more BoxGeometry).
  */
 
-import { useRef, useEffect, useMemo, useCallback } from 'react';
+import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
+import hogwartsBg from '../assets/hogwarts_BG.png';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
@@ -49,8 +50,16 @@ import { createCaptureEffect } from '../effects/index';
 import type { CaptureEffect } from '../effects/index';
 import { createPieceGroup, disposePieceGroup } from '../geometry/PieceFactory';
 import type { RimUniforms } from '../geometry/PieceFactory';
+import { onModelsReady } from '../geometry/gltfPieceCache';
 import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
+
+// ── Module-level singletons shared between PostFX and KnightChargeEffect ─────
+// These are plain Three.js objects — not React state — so they live outside
+// the component tree and can be mutated freely by both PostFX (useFrame) and
+// KnightChargeEffect (GSAP tweens).
+const sharedChromaticVec = new THREE.Vector2(0.0003, 0.0003);
+const sharedBloomProxy = { intensity: 0.2 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -61,6 +70,7 @@ const CANDLE_HEIGHT = 4.0;
 const MAX_ACTIVE_EFFECTS = 3;
 
 // Piece heights kept for future use (e.g. camera offset per piece type)
+// @ts-expect-error — kept for future camera-offset-per-piece-type feature
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PIECE_HEIGHTS: Record<PieceSymbol, number> = {
   p: 0.7,
@@ -347,6 +357,12 @@ function GameLogic({
   const theme = HOUSE_THEMES[house];
   const { scene, camera, gl } = useThree();
 
+  // Incremented when GLTF models finish loading — forces piece useEffect to re-run
+  const [modelsVersion, setModelsVersion] = useState(0);
+  useEffect(() => {
+    onModelsReady(() => setModelsVersion((v) => v + 1));
+  }, []);
+
   // Stable refs — never cause re-renders
   const chessRef = useRef(new Chess());
   const pieceMeshes = useRef(new Map<Square, PieceObject>());
@@ -359,6 +375,9 @@ function GameLogic({
   const legalTargets = useRef<Square[]>([]);
   const animInProgress = useRef(false);
   const soundsRef = useRef<{ move: Howl; check: Howl } | null>(null);
+  // Tracks the piece currently in motion + elapsed time for procedural animation
+  const movingPiece = useRef<PieceObject | null>(null);
+  const moveAnimTime = useRef(0);
   // Per-piece bob spring — keyed by square, created alongside each piece mesh
   const bobSprings = useRef(new Map<Square, Spring>());
   // Per-piece rim-light uniforms — animated on select/deselect
@@ -519,7 +538,7 @@ function GameLogic({
       pieceMeshes.current.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [house]); // rebuild pieces when house changes (new PBR material colours)
+  }, [house, modelsVersion]); // rebuild pieces when house changes or GLTFs finish loading
 
   // ── Highlight helpers ──────────────────────────────────────────────────────
 
@@ -532,6 +551,11 @@ function GameLogic({
     highlightMeshes.current.length = 0;
     for (const [sq, mat] of tileMats.current) {
       mat.color.setHex(isLightSquare(sq) ? theme.lightTile : theme.darkTile);
+    }
+    // Reset rim glow on all pieces — covers both the selected piece (gold) and
+    // any capture-highlighted enemy pieces (red) that were lit by highlightLegalMoves.
+    for (const rim of rimUniformsMap.current.values()) {
+      gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
     }
   }, [scene, theme]);
 
@@ -546,9 +570,11 @@ function GameLogic({
     (squares: Square[]) => {
       for (const sq of squares) {
         const [x, z] = squareToXZ(sq);
+        const isCapture = !!pieceMeshes.current.get(sq);
+        const dotColor = isCapture ? 0xff2200 : theme.legalMove;
         const geo = new THREE.CircleGeometry(0.22, 24);
         const mat = new THREE.MeshBasicMaterial({
-          color: theme.legalMove,
+          color: dotColor,
           transparent: true,
           opacity: 0.78,
           depthWrite: false,
@@ -558,6 +584,15 @@ function GameLogic({
         circle.position.set(x, 0.06, z);
         scene.add(circle);
         highlightMeshes.current.push(circle);
+
+        // For capturable enemy pieces, add a red/orange rim glow
+        if (isCapture) {
+          const rimOn = rimUniformsMap.current.get(sq);
+          if (rimOn) {
+            rimOn.uRimColor.value.set(0xff2200);
+            gsap.to(rimOn.uRimIntensity, { value: 2.5, duration: 0.3, ease: 'power2.out' });
+          }
+        }
       }
     },
     [scene, theme],
@@ -604,12 +639,21 @@ function GameLogic({
         scene.remove(capturedMesh);
 
         const spell = CAPTURE_ANIMATIONS[movingMesh.userData.pieceType];
+        const knightArgs =
+          spell === 'knightCharge'
+            ? {
+                attackerGroup: movingMesh,
+                chromaticVec: sharedChromaticVec,
+                bloomProxy: sharedBloomProxy,
+              }
+            : undefined;
         const effect = createCaptureEffect(
           spell,
           effectsGroup.current,
           movingMesh.position.clone(),
           victimMesh,
           resolve,
+          knightArgs,
         );
         activeEffects.current.push(effect);
       });
@@ -670,12 +714,23 @@ function GameLogic({
       const lx = -dz / dist;
       const lz = dx / dist;
 
+      // Start procedural move animation
+      movingPiece.current = movingMesh;
+      moveAnimTime.current = 0;
+
       const tl = gsap.timeline({
         onComplete: () => {
           movingMesh.scale.set(1, 1, 1);
           movingMesh.rotation.set(0, 0, 0);
           movingMesh.position.y = 0;
           bobSprings.current.get(toSq)?.reset(0);
+          // Reset knight legs to rest pose
+          movingMesh.traverse((child) => {
+            if (child instanceof THREE.Group && child.userData.role?.startsWith('leg')) {
+              child.rotation.x = 0;
+            }
+          });
+          movingPiece.current = null;
           animInProgress.current = false;
         },
       });
@@ -840,6 +895,38 @@ function GameLogic({
   // ── RAF loop ───────────────────────────────────────────────────────────────
 
   useFrame((_, delta) => {
+    // ── Procedural move animation ─────────────────────────────────────────────
+    if (animInProgress.current && movingPiece.current) {
+      moveAnimTime.current += delta;
+      const t = moveAnimTime.current;
+      const piece = movingPiece.current;
+      const pieceType = piece.userData.pieceType as string;
+
+      // All pieces: subtle body bounce/gallop oscillation added on top of GSAP arc
+      // Only apply during the airborne phase (roughly 0.06–0.56s)
+      if (t > 0.06 && t < 0.58) {
+        const gallop = Math.sin(t * 18) * 0.025;
+        piece.position.y += gallop;
+      }
+
+      // Knight only: animate 4 leg groups in a gallop cycle
+      if (pieceType === 'n') {
+        piece.traverse((child) => {
+          if (!(child instanceof THREE.Group)) return;
+          const role = child.userData.role as string | undefined;
+          if (!role?.startsWith('leg')) return;
+
+          // Each leg pair is offset by half a cycle so front/back alternate
+          // Front legs lead, hind legs follow with π offset
+          const isFront = role === 'legFL' || role === 'legFR';
+          const isLeft = role === 'legFL' || role === 'legHL';
+          const phaseOffset = (isFront ? 0 : Math.PI) + (isLeft ? 0 : Math.PI);
+          const swing = Math.sin(t * 16 + phaseOffset) * 0.7; // ±0.7 rad swing
+          child.rotation.x = swing;
+        });
+      }
+    }
+
     // Bob springs — only tick when no move animation is running
     if (!animInProgress.current) {
       const sel = selectedSquare.current;
@@ -869,70 +956,7 @@ function GameLogic({
   );
 }
 
-// ── Wand cursor light ─────────────────────────────────────────────────────────
-
-/**
- * A point light + tiny sparkle sphere that follows the mouse projected onto
- * the board plane (y=0). Gives the illusion that the wand tip illuminates
- * whatever it hovers over.
- */
-function WandLight() {
-  const lightRef = useRef<THREE.PointLight>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
-  const targetPos = useRef(new THREE.Vector3(0, 1.2, 0));
-  const raycaster = useMemo(() => new THREE.Raycaster(), []);
-  const boardPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
-  const pointer = useMemo(() => new THREE.Vector2(), []);
-  const hitPoint = useMemo(() => new THREE.Vector3(), []);
-  const { camera, gl } = useThree();
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      const rect = gl.domElement.getBoundingClientRect();
-      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      raycaster.setFromCamera(pointer, camera);
-      if (raycaster.ray.intersectPlane(boardPlane, hitPoint)) {
-        // Float the light just above the board
-        targetPos.current.set(hitPoint.x, 1.2, hitPoint.z);
-      }
-    };
-    gl.domElement.addEventListener('mousemove', onMove);
-    return () => gl.domElement.removeEventListener('mousemove', onMove);
-  }, [camera, gl.domElement, raycaster, boardPlane, pointer, hitPoint]);
-
-  useFrame((_, delta) => {
-    const t = Math.min(1, delta * 14); // fast lerp for snappy follow
-    if (lightRef.current) {
-      lightRef.current.position.lerp(targetPos.current, t);
-    }
-    if (glowRef.current) {
-      glowRef.current.position.lerp(targetPos.current, t);
-      // Gentle pulse
-      const s = 0.9 + Math.sin(performance.now() * 0.006) * 0.15;
-      glowRef.current.scale.setScalar(s);
-    }
-  });
-
-  return (
-    <>
-      {/* Illuminating point light */}
-      <pointLight
-        ref={lightRef}
-        color={0xfff4a0}
-        intensity={1.8}
-        distance={5}
-        decay={2}
-        position={[0, 1.2, 0]}
-      />
-      {/* Tiny glowing sprite at wand tip projection */}
-      <mesh ref={glowRef} position={[0, 1.2, 0]}>
-        <sphereGeometry args={[0.055, 8, 8]} />
-        <meshBasicMaterial color={0xffffc0} transparent opacity={0.7} depthWrite={false} />
-      </mesh>
-    </>
-  );
-}
+// SceneBackground is rendered as a CSS layer behind the Canvas — see ChessScene JSX.
 
 // ── Post-processing ──────────────────────────────────────────────────────────
 
@@ -940,13 +964,13 @@ function PostFX() {
   return (
     <EffectComposer>
       <Bloom
-        intensity={0.2}
+        intensity={sharedBloomProxy.intensity}
         luminanceThreshold={0.9}
         luminanceSmoothing={0.8}
         blendFunction={BlendFunction.ADD}
       />
       <ChromaticAberration
-        offset={[0.0003, 0.0003] as unknown as [number, number]}
+        offset={[sharedChromaticVec.x, sharedChromaticVec.y] as unknown as [number, number]}
         blendFunction={BlendFunction.NORMAL}
         radialModulation={false}
         modulationOffset={0}
@@ -965,22 +989,32 @@ export default function ChessScene() {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
   return (
-    <div style={{ width: '100%', height: '100vh' }}>
+    <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
+      {/* Background image — rendered as a CSS layer so it bypasses Three.js
+          tone mapping and post-processing, preserving full sharpness and colour */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url(${hogwartsBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          zIndex: 0,
+        }}
+      />
       <Canvas
+        style={{ position: 'relative', zIndex: 1 }}
         shadows
         camera={{ position: [0, 12, 10], fov: 45 }}
         gl={{
           antialias: true,
+          alpha: true,
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 0.65,
         }}
         dpr={[1, 2]}
         performance={{ min: 0.5 }}
       >
-        {/* Scene background */}
-        <color attach="background" args={[theme.sceneBg]} />
-        <fog attach="fog" args={[theme.sceneBg, 20, 48]} />
-
         {/* Lighting — intentionally dim; candles provide most of the fill */}
         <ambientLight intensity={0.18} color={0xfff0d0} />
         <directionalLight
@@ -1013,9 +1047,6 @@ export default function ChessScene() {
 
         {/* Floating candles */}
         <FloatingCandles candleColor={theme.candleColor} />
-
-        {/* Wand cursor light — follows mouse across board */}
-        <WandLight />
 
         {/* Contact shadows — tight scale to avoid the ring artifact */}
         <ContactShadows

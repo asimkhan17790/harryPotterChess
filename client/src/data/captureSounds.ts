@@ -31,4 +31,12 @@ export const CAPTURE_SOUNDS: Record<SpellName, SpellSounds> = {
     cast: '/audio/spells/fiendfyre_cast.mp3',
     impact: '/audio/spells/fiendfyre_roar.mp3',
   },
+  queenSword: {
+    cast: '/audio/spells/sword_unsheathe.mp3',
+    impact: '/audio/spells/sword_impact.mp3',
+  },
+  knightCharge: {
+    cast: '/audio/spells/horse_charge.mp3',
+    impact: '/audio/spells/sword_impact.mp3',
+  },
 };

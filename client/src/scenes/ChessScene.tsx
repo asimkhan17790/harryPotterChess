@@ -35,8 +35,15 @@ import {
   Sparkles,
   MeshReflectorMaterial,
 } from '@react-three/drei';
-import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing';
+import {
+  EffectComposer,
+  Bloom,
+  ChromaticAberration,
+  Vignette,
+  DepthOfField,
+} from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
+import type { DepthOfFieldEffect } from 'postprocessing';
 import * as THREE from 'three';
 import { Chess } from 'chess.js';
 import type { Color, PieceSymbol, Square } from 'chess.js';
@@ -340,9 +347,11 @@ function FloatingCandles({ candleColor }: { candleColor: number }) {
 function GameLogic({
   house,
   controlsRef,
+  dofTargetRef,
 }: {
   house: HouseName;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
+  dofTargetRef: React.MutableRefObject<number>;
 }) {
   const theme = HOUSE_THEMES[house];
   const { scene, camera, gl } = useThree();
@@ -812,6 +821,11 @@ function GameLogic({
         for (const [rsq, rimOff] of rimUniformsMap.current) {
           if (rsq !== sq) gsap.to(rimOff.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
+        // DoF — focus on selected piece distance
+        const selMesh = pieceMeshes.current.get(sq);
+        if (selMesh) {
+          dofTargetRef.current = camera.position.distanceTo(selMesh.position) / 100;
+        }
       } else {
         clearHighlights();
         selectedSquare.current = null;
@@ -820,6 +834,8 @@ function GameLogic({
         for (const rim of rimUniformsMap.current.values()) {
           gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
+        // DoF — defocus (pull back toward infinity)
+        dofTargetRef.current = 0.0;
       }
     },
     [
@@ -869,11 +885,42 @@ function GameLogic({
   );
 }
 
+// ── Dynamic depth of field ────────────────────────────────────────────────────
+
+/**
+ * Lerps the DepthOfField focusDistance each frame toward a shared target ref.
+ * Using useFrame + direct property mutation avoids GSAP's inability to tween
+ * the postprocessing getter/setter.
+ */
+function DynamicDOF({ targetRef }: { targetRef: React.MutableRefObject<number> }) {
+  const effectRef = useRef<DepthOfFieldEffect | null>(null);
+
+  useFrame((_, delta) => {
+    const effect = effectRef.current;
+    if (!effect) return;
+    const current = effect.cocMaterial.uniforms.focusDistance.value as number;
+    const target = targetRef.current;
+    const lerped = current + (target - current) * Math.min(1, delta * 6);
+    effect.cocMaterial.uniforms.focusDistance.value = lerped;
+  });
+
+  return (
+    <DepthOfField
+      ref={effectRef}
+      focusDistance={0.0}
+      focalLength={0.06}
+      bokehScale={1.8}
+      blendFunction={BlendFunction.NORMAL}
+    />
+  );
+}
+
 // ── Post-processing ──────────────────────────────────────────────────────────
 
-function PostFX() {
+function PostFX({ dofTargetRef }: { dofTargetRef: React.MutableRefObject<number> }) {
   return (
     <EffectComposer>
+      <DynamicDOF targetRef={dofTargetRef} />
       <Bloom
         intensity={0.2}
         luminanceThreshold={0.9}
@@ -898,6 +945,8 @@ export default function ChessScene() {
   const theme = HOUSE_THEMES[house as HouseName];
 
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  // Shared mutable target for DoF focus distance (0–1 normalized)
+  const dofTargetRef = useRef(0.0);
 
   return (
     <div style={{ width: '100%', height: '100vh' }}>
@@ -961,7 +1010,11 @@ export default function ChessScene() {
         />
 
         {/* All game logic + board + pieces */}
-        <GameLogic house={house as HouseName} controlsRef={controlsRef} />
+        <GameLogic
+          house={house as HouseName}
+          controlsRef={controlsRef}
+          dofTargetRef={dofTargetRef}
+        />
 
         {/* Camera controls */}
         <OrbitControls
@@ -977,7 +1030,7 @@ export default function ChessScene() {
         />
 
         {/* Post-processing */}
-        <PostFX />
+        <PostFX dofTargetRef={dofTargetRef} />
       </Canvas>
     </div>
   );

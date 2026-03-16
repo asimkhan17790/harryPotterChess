@@ -18,17 +18,24 @@ import { useRef, useEffect, useMemo, useCallback } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 gsap.registerPlugin(CustomEase);
 
 // ── GSAP custom eases ────────────────────────────────────────────────────────
 // Pickup: tiny anticipation dip then arc upward
-CustomEase.create('pickup', 'M0,0 C0.1,-0.08 0.2,-0.12 0.3,0.04 0.5,0.3 0.7,1.05 0.85,1.02 1,1');
+CustomEase.create('pickup', 'M0,0 C0.1,-0.08,0.3,0.04,0.5,0.3 C0.7,0.56,0.85,1.02,1,1');
 // Land: fast fall, elastic micro-bounce settle
-CustomEase.create('land', 'M0,0 C0.2,0 0.4,0.8 0.6,1.02 0.75,1.05 0.85,0.98 1,1');
+CustomEase.create('land', 'M0,0 C0.2,0,0.5,0.9,0.7,1.02 C0.85,1.05,0.95,0.98,1,1');
 // Slam: violent deceleration into hard stop (capture moves)
-CustomEase.create('slam', 'M0,0 C0.05,0 0.1,0.9 0.3,1.03 0.5,1.06 0.7,0.99 1,1');
+CustomEase.create('slam', 'M0,0 C0.05,0,0.2,1.03,0.4,1.05 C0.6,1.07,0.8,0.99,1,1');
 import { OrbitControls, Environment, ContactShadows, Sparkles } from '@react-three/drei';
-import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing';
+import {
+  EffectComposer,
+  Bloom,
+  ChromaticAberration,
+  Vignette,
+  DepthOfField,
+} from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 import { Chess } from 'chess.js';
@@ -319,7 +326,15 @@ function FloatingCandles({ candleColor }: { candleColor: number }) {
 
 // ── Main game logic component ─────────────────────────────────────────────────
 
-function GameLogic({ house }: { house: HouseName }) {
+function GameLogic({
+  house,
+  controlsRef,
+  dofRef,
+}: {
+  house: HouseName;
+  controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
+  dofRef: React.MutableRefObject<DepthOfField | null>;
+}) {
   const theme = HOUSE_THEMES[house];
   const { scene, camera, gl } = useThree();
 
@@ -335,6 +350,65 @@ function GameLogic({ house }: { house: HouseName }) {
   const legalTargets = useRef<Square[]>([]);
   const animInProgress = useRef(false);
   const soundsRef = useRef<{ move: Howl; check: Howl } | null>(null);
+
+  // ── Camera helpers ─────────────────────────────────────────────────────────
+
+  const captureCamera = useCallback(
+    async (victimPos: THREE.Vector3) => {
+      const controls = controlsRef.current;
+      if (!controls) return;
+
+      const origPos = camera.position.clone();
+      const origTarget = (controls.target as THREE.Vector3).clone();
+
+      // 1. Zoom toward the action
+      await gsap.to(camera.position, {
+        x: victimPos.x * 0.3,
+        y: 3.5,
+        z: victimPos.z + 4,
+        duration: 0.35,
+        ease: 'power2.in',
+      });
+      gsap.to(controls.target, { x: victimPos.x, y: 0, z: victimPos.z, duration: 0.35 });
+
+      // 2. Hold at impact
+      await new Promise<void>((r) => setTimeout(r, 400));
+
+      // 3. Pull back to original position
+      await gsap.to(camera.position, {
+        x: origPos.x,
+        y: origPos.y,
+        z: origPos.z,
+        duration: 0.7,
+        ease: 'power2.out',
+      });
+      gsap.to(controls.target, {
+        x: origTarget.x,
+        y: origTarget.y,
+        z: origTarget.z,
+        duration: 0.7,
+      });
+    },
+    [camera, controlsRef],
+  );
+
+  const cameraShake = useCallback(
+    (intensity = 0.15, duration = 0.4) => {
+      const shakeObj = { v: 0 };
+      gsap.to(shakeObj, {
+        duration,
+        v: intensity,
+        yoyo: true,
+        repeat: 5,
+        ease: 'none',
+        onUpdate: () => {
+          camera.position.x += (Math.random() - 0.5) * shakeObj.v;
+          camera.position.y += (Math.random() - 0.5) * shakeObj.v;
+        },
+      });
+    },
+    [camera],
+  );
 
   // ── Scene setup ────────────────────────────────────────────────────────────
 
@@ -538,6 +612,10 @@ function GameLogic({ house }: { house: HouseName }) {
         const capturedMesh = pieceMeshes.current.get(toSq);
         if (capturedMesh) {
           pieceMeshes.current.delete(toSq);
+          const victimPos = capturedMesh.position.clone();
+          // Dramatic camera push + shake — fire in parallel with the spell
+          captureCamera(victimPos).catch(() => undefined);
+          cameraShake(0.12, 0.35);
           await playCaptureAnimation(movingMesh, capturedMesh);
         }
       }
@@ -618,7 +696,7 @@ function GameLogic({ house }: { house: HouseName }) {
           ease: 'elastic.out(1, 0.4)',
         });
     },
-    [playCaptureAnimation, reconcilePieces],
+    [captureCamera, cameraShake, playCaptureAnimation, reconcilePieces],
   );
 
   // ── Pointer interaction ────────────────────────────────────────────────────
@@ -694,13 +772,36 @@ function GameLogic({ house }: { house: HouseName }) {
           .moves({ square: sq, verbose: true })
           .map((m) => m.to as Square);
         highlightLegalMoves(legalTargets.current);
+
+        // Dynamic DoF — focus on selected piece
+        const pieceMesh = pieceMeshes.current.get(sq);
+        if (pieceMesh && dofRef.current) {
+          const dist = camera.position.distanceTo(pieceMesh.position);
+          gsap.to(dofRef.current, {
+            focusDistance: dist / 100,
+            duration: 0.4,
+            ease: 'power2.out',
+          });
+        }
       } else {
         clearHighlights();
         selectedSquare.current = null;
         legalTargets.current = [];
+        // Defocus when deselecting
+        if (dofRef.current) {
+          gsap.to(dofRef.current, { focusDistance: 0.0, duration: 0.4, ease: 'power2.out' });
+        }
       }
     },
-    [clearHighlights, executeMove, getClickedSquare, highlightLegalMoves, highlightSelected],
+    [
+      camera,
+      clearHighlights,
+      dofRef,
+      executeMove,
+      getClickedSquare,
+      highlightLegalMoves,
+      highlightSelected,
+    ],
   );
 
   useEffect(() => {
@@ -733,9 +834,16 @@ function GameLogic({ house }: { house: HouseName }) {
 
 // ── Post-processing ──────────────────────────────────────────────────────────
 
-function PostFX() {
+function PostFX({ dofRef }: { dofRef: React.MutableRefObject<DepthOfField | null> }) {
   return (
     <EffectComposer>
+      <DepthOfField
+        ref={dofRef}
+        focusDistance={0.0}
+        focalLength={0.08}
+        bokehScale={2.5}
+        blendFunction={BlendFunction.NORMAL}
+      />
       <Bloom
         intensity={0.2}
         luminanceThreshold={0.9}
@@ -758,6 +866,9 @@ function PostFX() {
 export default function ChessScene() {
   const house = useHouseStore((s) => s.selectedHouse) ?? 'gryffindor';
   const theme = HOUSE_THEMES[house as HouseName];
+
+  const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const dofRef = useRef<DepthOfField | null>(null);
 
   return (
     <div style={{ width: '100%', height: '100vh' }}>
@@ -821,10 +932,11 @@ export default function ChessScene() {
         />
 
         {/* All game logic + board + pieces */}
-        <GameLogic house={house as HouseName} />
+        <GameLogic house={house as HouseName} controlsRef={controlsRef} dofRef={dofRef} />
 
         {/* Camera controls */}
         <OrbitControls
+          ref={controlsRef}
           enablePan={false}
           minPolarAngle={Math.PI / 6}
           maxPolarAngle={Math.PI / 2.2}
@@ -836,7 +948,7 @@ export default function ChessScene() {
         />
 
         {/* Post-processing */}
-        <PostFX />
+        <PostFX dofRef={dofRef} />
       </Canvas>
     </div>
   );

@@ -48,6 +48,7 @@ import { CAPTURE_ANIMATIONS } from '../data/captureAnimations';
 import { createCaptureEffect } from '../effects/index';
 import type { CaptureEffect } from '../effects/index';
 import { createPieceGroup, disposePieceGroup } from '../geometry/PieceFactory';
+import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -58,6 +59,8 @@ const CANDLE_RADIUS = 5.5;
 const CANDLE_HEIGHT = 4.0;
 const MAX_ACTIVE_EFFECTS = 3;
 
+// Piece heights kept for future use (e.g. camera offset per piece type)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PIECE_HEIGHTS: Record<PieceSymbol, number> = {
   p: 0.7,
   n: 0.88,
@@ -350,6 +353,8 @@ function GameLogic({
   const legalTargets = useRef<Square[]>([]);
   const animInProgress = useRef(false);
   const soundsRef = useRef<{ move: Howl; check: Howl } | null>(null);
+  // Per-piece bob spring — keyed by square, created alongside each piece mesh
+  const bobSprings = useRef(new Map<Square, Spring>());
 
   // ── Camera helpers ─────────────────────────────────────────────────────────
 
@@ -430,12 +435,11 @@ function GameLogic({
 
   const buildPieceMesh = useCallback(
     (sq: Square, type: PieceSymbol, color: Color): PieceObject => {
-      const h = PIECE_HEIGHTS[type];
       const [x, z] = squareToXZ(sq);
       const group = createPieceGroup(type, color, house) as PieceObject;
       group.position.set(x, 0, z);
       group.userData = { square: sq, pieceType: type, pieceColor: color };
-      void h;
+      bobSprings.current.set(sq, new Spring(120, 20, 1));
       return group;
     },
     [house],
@@ -448,6 +452,7 @@ function GameLogic({
       scene.remove(m);
       disposePieceGroup(m);
       pieceMeshes.current.delete(sq);
+      bobSprings.current.delete(sq);
     },
     [scene],
   );
@@ -624,6 +629,12 @@ function GameLogic({
       pieceMeshes.current.delete(fromSq);
       pieceMeshes.current.set(toSq, movingMesh);
       movingMesh.userData.square = toSq;
+      // Migrate spring to new square key
+      const spring = bobSprings.current.get(fromSq);
+      if (spring) {
+        bobSprings.current.delete(fromSq);
+        bobSprings.current.set(toSq, spring);
+      }
       reconcilePieces(toSq);
 
       if (!isCapture) soundsRef.current?.move.play();
@@ -647,6 +658,8 @@ function GameLogic({
         onComplete: () => {
           movingMesh.scale.set(1, 1, 1);
           movingMesh.rotation.set(0, 0, 0);
+          movingMesh.position.y = 0;
+          bobSprings.current.get(toSq)?.reset(0);
           animInProgress.current = false;
         },
       });
@@ -812,7 +825,16 @@ function GameLogic({
   // ── RAF loop ───────────────────────────────────────────────────────────────
 
   useFrame((_, delta) => {
-    // Piece movement is handled entirely by GSAP — no manual lerp needed here.
+    // Bob springs — only tick when no move animation is running
+    if (!animInProgress.current) {
+      const sel = selectedSquare.current;
+      for (const [sq, mesh] of pieceMeshes.current) {
+        const spring = bobSprings.current.get(sq);
+        if (!spring) continue;
+        spring.target = sq === sel ? 0.28 : 0;
+        mesh.position.y = spring.update(delta);
+      }
+    }
 
     // Tick spell effects
     for (let i = activeEffects.current.length - 1; i >= 0; i--) {

@@ -28,13 +28,20 @@ CustomEase.create('pickup', 'M0,0 C0.1,-0.08,0.3,0.04,0.5,0.3 C0.7,0.56,0.85,1.0
 CustomEase.create('land', 'M0,0 C0.2,0,0.5,0.9,0.7,1.02 C0.85,1.05,0.95,0.98,1,1');
 // Slam: violent deceleration into hard stop (capture moves)
 CustomEase.create('slam', 'M0,0 C0.05,0,0.2,1.03,0.4,1.05 C0.6,1.07,0.8,0.99,1,1');
-import { OrbitControls, Environment, ContactShadows, Sparkles } from '@react-three/drei';
+import {
+  OrbitControls,
+  Environment,
+  ContactShadows,
+  Sparkles,
+  MeshReflectorMaterial,
+} from '@react-three/drei';
 import {
   EffectComposer,
   Bloom,
   ChromaticAberration,
   Vignette,
   DepthOfField,
+  SSAO,
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -48,6 +55,7 @@ import { CAPTURE_ANIMATIONS } from '../data/captureAnimations';
 import { createCaptureEffect } from '../effects/index';
 import type { CaptureEffect } from '../effects/index';
 import { createPieceGroup, disposePieceGroup } from '../geometry/PieceFactory';
+import type { RimUniforms } from '../geometry/PieceFactory';
 import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
 
@@ -82,76 +90,83 @@ type PieceObject = THREE.Group & { userData: PieceUserData };
 
 // ── Board component ──────────────────────────────────────────────────────────
 
+// Pre-build the 64 square positions + light/dark flags once at module level
+const BOARD_SQUARES: { sq: Square; x: number; z: number; isLight: boolean }[] = [];
+for (let rank = 0; rank < 8; rank++) {
+  for (let file = 0; file < 8; file++) {
+    const sq = indicesToSquare(file, rank) as Square;
+    const [x, z] = squareToXZ(sq);
+    BOARD_SQUARES.push({ sq, x, z, isLight: isLightSquare(sq) });
+  }
+}
+
 function ChessBoard({
   theme,
   tileMeshes,
   tileMats,
 }: {
-  theme: ReturnType<
-    (typeof HOUSE_THEMES)['gryffindor']['lightTile'] extends number
-      ? () => (typeof HOUSE_THEMES)['gryffindor']
-      : never
-  >;
+  theme: (typeof HOUSE_THEMES)[HouseName];
   tileMeshes: React.MutableRefObject<Map<Square, THREE.Mesh>>;
   tileMats: React.MutableRefObject<Map<Square, THREE.MeshStandardMaterial>>;
 }) {
-  // Imperative board build — runs once per theme change
-  const { scene } = useThree();
+  return (
+    <>
+      {/* Dark wood frame */}
+      <mesh position={[0, -0.06, 0]} receiveShadow>
+        <boxGeometry args={[8.8, 0.12, 8.8]} />
+        <meshStandardMaterial color={0x2a1a0a} roughness={0.4} metalness={0.3} />
+      </mesh>
 
-  useEffect(() => {
-    // Remove old tiles
-    for (const mesh of tileMeshes.current.values()) scene.remove(mesh);
-    for (const mat of tileMats.current.values()) mat.dispose();
-    tileMeshes.current.clear();
-    tileMats.current.clear();
-
-    const tileGeo = new THREE.BoxGeometry(0.97, 0.05, 0.97);
-
-    for (let rank = 0; rank < 8; rank++) {
-      for (let file = 0; file < 8; file++) {
-        const sq = indicesToSquare(file, rank) as Square;
-        const isLight = isLightSquare(sq);
-        const mat = new THREE.MeshStandardMaterial({
-          color: isLight ? theme.lightTile : theme.darkTile,
-          roughness: isLight ? 0.15 : 0.12,
-          metalness: isLight ? 0.05 : 0.1,
-        });
-        const tile = new THREE.Mesh(tileGeo, mat);
-        const [x, z] = squareToXZ(sq);
-        tile.position.set(x, 0, z);
-        tile.receiveShadow = true;
-        scene.add(tile);
-        tileMeshes.current.set(sq, tile);
-        tileMats.current.set(sq, mat);
-      }
-    }
-
-    // Board frame
-    const frameGeo = new THREE.BoxGeometry(8.8, 0.12, 8.8);
-    const frameMat = new THREE.MeshStandardMaterial({
-      color: 0x2a1a0a,
-      roughness: 0.4,
-      metalness: 0.3,
-    });
-    const frame = new THREE.Mesh(frameGeo, frameMat);
-    frame.position.y = -0.06;
-    frame.receiveShadow = true;
-    scene.add(frame);
-
-    return () => {
-      scene.remove(frame);
-      frameGeo.dispose();
-      frameMat.dispose();
-      tileGeo.dispose();
-      for (const mesh of tileMeshes.current.values()) scene.remove(mesh);
-      for (const mat of tileMats.current.values()) mat.dispose();
-      tileMeshes.current.clear();
-      tileMats.current.clear();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme]);
-
-  return null;
+      {BOARD_SQUARES.map(({ sq, x, z, isLight }) =>
+        isLight ? (
+          // Light tiles — standard material, register mesh ref via callback
+          <mesh
+            key={sq}
+            position={[x, 0, z]}
+            receiveShadow
+            ref={(m) => {
+              if (m) {
+                tileMeshes.current.set(sq, m);
+                tileMats.current.set(sq, m.material as THREE.MeshStandardMaterial);
+              }
+            }}
+          >
+            <boxGeometry args={[0.97, 0.05, 0.97]} />
+            <meshStandardMaterial color={theme.lightTile} roughness={0.15} metalness={0.05} />
+          </mesh>
+        ) : (
+          // Dark tiles — reflective surface
+          <mesh
+            key={sq}
+            position={[x, 0, z]}
+            receiveShadow
+            ref={(m) => {
+              if (m) {
+                tileMeshes.current.set(sq, m);
+                // MeshReflectorMaterial replaces material — store it after mount
+                tileMats.current.set(sq, m.material as THREE.MeshStandardMaterial);
+              }
+            }}
+          >
+            <boxGeometry args={[0.97, 0.05, 0.97]} />
+            <MeshReflectorMaterial
+              color={theme.darkTile}
+              roughness={0.08}
+              metalness={0.15}
+              mirror={0.4}
+              blur={[200, 100]}
+              resolution={256}
+              mixBlur={0.8}
+              mixStrength={0.6}
+              depthScale={0}
+              minDepthThreshold={0.9}
+              maxDepthThreshold={1}
+            />
+          </mesh>
+        ),
+      )}
+    </>
+  );
 }
 
 // ── Floating candles ─────────────────────────────────────────────────────────
@@ -355,6 +370,8 @@ function GameLogic({
   const soundsRef = useRef<{ move: Howl; check: Howl } | null>(null);
   // Per-piece bob spring — keyed by square, created alongside each piece mesh
   const bobSprings = useRef(new Map<Square, Spring>());
+  // Per-piece rim-light uniforms — animated on select/deselect
+  const rimUniformsMap = useRef(new Map<Square, RimUniforms>());
 
   // ── Camera helpers ─────────────────────────────────────────────────────────
 
@@ -436,11 +453,13 @@ function GameLogic({
   const buildPieceMesh = useCallback(
     (sq: Square, type: PieceSymbol, color: Color): PieceObject => {
       const [x, z] = squareToXZ(sq);
-      const group = createPieceGroup(type, color, house) as PieceObject;
-      group.position.set(x, 0, z);
-      group.userData = { square: sq, pieceType: type, pieceColor: color };
+      const { group, rimUniforms } = createPieceGroup(type, color, house);
+      const pieceObj = group as PieceObject;
+      pieceObj.position.set(x, 0, z);
+      pieceObj.userData = { square: sq, pieceType: type, pieceColor: color };
       bobSprings.current.set(sq, new Spring(120, 20, 1));
-      return group;
+      rimUniformsMap.current.set(sq, rimUniforms);
+      return pieceObj;
     },
     [house],
   );
@@ -453,6 +472,7 @@ function GameLogic({
       disposePieceGroup(m);
       pieceMeshes.current.delete(sq);
       bobSprings.current.delete(sq);
+      rimUniformsMap.current.delete(sq);
     },
     [scene],
   );
@@ -629,11 +649,16 @@ function GameLogic({
       pieceMeshes.current.delete(fromSq);
       pieceMeshes.current.set(toSq, movingMesh);
       movingMesh.userData.square = toSq;
-      // Migrate spring to new square key
+      // Migrate spring + rim uniforms to new square key
       const spring = bobSprings.current.get(fromSq);
       if (spring) {
         bobSprings.current.delete(fromSq);
         bobSprings.current.set(toSq, spring);
+      }
+      const rim = rimUniformsMap.current.get(fromSq);
+      if (rim) {
+        rimUniformsMap.current.delete(fromSq);
+        rimUniformsMap.current.set(toSq, rim);
       }
       reconcilePieces(toSq);
 
@@ -796,6 +821,16 @@ function GameLogic({
             ease: 'power2.out',
           });
         }
+        // Rim light on — gold for selected piece
+        const rimOn = rimUniformsMap.current.get(sq);
+        if (rimOn) {
+          rimOn.uRimColor.value.set(0xffd700);
+          gsap.to(rimOn.uRimIntensity, { value: 2.0, duration: 0.3, ease: 'power2.out' });
+        }
+        // Rim light off — any previously selected piece
+        for (const [rsq, rimOff] of rimUniformsMap.current) {
+          if (rsq !== sq) gsap.to(rimOff.uRimIntensity, { value: 0.0, duration: 0.2 });
+        }
       } else {
         clearHighlights();
         selectedSquare.current = null;
@@ -803,6 +838,10 @@ function GameLogic({
         // Defocus when deselecting
         if (dofRef.current) {
           gsap.to(dofRef.current, { focusDistance: 0.0, duration: 0.4, ease: 'power2.out' });
+        }
+        // Rim light off — all pieces
+        for (const rim of rimUniformsMap.current.values()) {
+          gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
       }
     },
@@ -859,6 +898,12 @@ function GameLogic({
 function PostFX({ dofRef }: { dofRef: React.MutableRefObject<DepthOfField | null> }) {
   return (
     <EffectComposer>
+      <SSAO
+        radius={0.4}
+        intensity={20}
+        luminanceInfluence={0.6}
+        blendFunction={BlendFunction.MULTIPLY}
+      />
       <DepthOfField
         ref={dofRef}
         focusDistance={0.0}

@@ -234,6 +234,44 @@ function addQueenCrown(group: THREE.Group, rimY: number, rimR: number): void {
   }
 }
 
+// ── Rim light shader injection ────────────────────────────────────────────────
+
+export interface RimUniforms {
+  uRimColor: { value: THREE.Color };
+  uRimIntensity: { value: number };
+}
+
+/**
+ * Injects a Fresnel rim-light term into a MeshStandardMaterial via
+ * onBeforeCompile. Returns the uniform handles so the caller can animate them.
+ */
+function injectRimLight(mat: THREE.MeshStandardMaterial): RimUniforms {
+  const uniforms: RimUniforms = {
+    uRimColor: { value: new THREE.Color(0x4488ff) },
+    uRimIntensity: { value: 0.0 },
+  };
+
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uRimColor = uniforms.uRimColor;
+    shader.uniforms.uRimIntensity = uniforms.uRimIntensity;
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <dithering_fragment>',
+      `
+      // Fresnel rim light
+      vec3 viewDir = normalize(vViewPosition);
+      float rim = 1.0 - max(dot(viewDir, normalize(vNormal)), 0.0);
+      rim = pow(rim, 3.0);
+      outgoingLight += uRimColor * rim * uRimIntensity;
+      #include <dithering_fragment>
+      `,
+    );
+  };
+  // needsUpdate so the patched shader is recompiled
+  mat.needsUpdate = true;
+  return uniforms;
+}
+
 // ── Public factory ────────────────────────────────────────────────────────────
 
 /**
@@ -245,7 +283,7 @@ export function createPieceGroup(
   side: Color,
   house: HouseName | null = null,
   envMap: THREE.Texture | null = null,
-): THREE.Group {
+): { group: THREE.Group; rimUniforms: RimUniforms } {
   const base = { ...BASE_MATERIALS[side] };
   // Only tint black pieces with the house colour; white stays ivory.
   if (side === 'b' && house && HOUSE_OVERRIDES_BLACK[house]) {
@@ -259,10 +297,11 @@ export function createPieceGroup(
     envMap: envMap ?? undefined,
     envMapIntensity: base.envMapIntensity,
   });
+  const rimUniforms = injectRimLight(mat);
 
   // Rook and king use composite warrior groups instead of lathe profiles.
-  if (type === 'r') return buildRookGroup(mat);
-  if (type === 'k') return buildKingGroup(mat);
+  if (type === 'r') return { group: buildRookGroup(mat), rimUniforms };
+  if (type === 'k') return { group: buildKingGroup(mat), rimUniforms };
 
   const profile = PIECE_PROFILES[type];
   const geo = buildLatheGeometry(type);
@@ -276,7 +315,7 @@ export function createPieceGroup(
 
   if (type === 'q') addQueenCrown(group, profile.height, 0.24);
 
-  return group;
+  return { group, rimUniforms };
 }
 
 /** Dispose all geometries and materials inside a piece group. */

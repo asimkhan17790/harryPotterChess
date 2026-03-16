@@ -110,16 +110,115 @@ export function buildRookGroup(mat: THREE.MeshStandardMaterial): THREE.Group {
   return g;
 }
 
-/** Adds a king cross (vertical + horizontal bar) merged on top of the lathe mesh. */
-function addKingCross(group: THREE.Group, topY: number): void {
-  const mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 });
-  const vertGeo = new THREE.BoxGeometry(0.06, 0.22, 0.06);
-  const horizGeo = new THREE.BoxGeometry(0.18, 0.06, 0.06);
-  const vert = new THREE.Mesh(vertGeo, mat);
-  const horiz = new THREE.Mesh(horizGeo, mat);
-  vert.position.y = topY + 0.11;
-  horiz.position.y = topY + 0.18;
-  group.add(vert, horiz);
+// ── King: tall armored knight standing upright ───────────────────────────────
+
+/**
+ * Builds a king as a tall standing armored knight — full plate/chainmail,
+ * crossed arms holding weapons, flowing cape, visored great helm with crown.
+ * Inspired by the Harry Potter wizard chess king piece.
+ */
+export function buildKingGroup(mat: THREE.MeshStandardMaterial): THREE.Group {
+  const g = new THREE.Group();
+
+  const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    g.add(m);
+    return m;
+  };
+
+  // Gold accent material for crown
+  const goldMat = new THREE.MeshStandardMaterial({
+    color: 0xffd700,
+    metalness: 0.9,
+    roughness: 0.1,
+  });
+  const addGold = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, goldMat);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    g.add(m);
+  };
+
+  // ── Ornate tiered base ────────────────────────────────────────────────────
+  add(new THREE.CylinderGeometry(0.33, 0.36, 0.07, 8), 0, 0.035); // bottom slab
+  add(new THREE.CylinderGeometry(0.27, 0.31, 0.06, 8), 0, 0.095); // mid tier
+  add(new THREE.CylinderGeometry(0.22, 0.25, 0.05, 8), 0, 0.148); // top platform
+
+  // ── Chainmail skirt / lower robes ─────────────────────────────────────────
+  // Wide flared skirt from hips to ankles
+  add(new THREE.CylinderGeometry(0.18, 0.22, 0.32, 10), 0, 0.34);
+  // Inner skirt layer (slightly narrower, decorative depth)
+  add(new THREE.CylinderGeometry(0.14, 0.17, 0.28, 10), 0, 0.32);
+  // Belt / waist cinch
+  add(new THREE.CylinderGeometry(0.155, 0.165, 0.045, 10), 0, 0.498);
+
+  // ── Torso: broad plate armour ─────────────────────────────────────────────
+  // Main chest plate
+  add(new THREE.BoxGeometry(0.28, 0.3, 0.2), 0, 0.67, 0.01);
+  // Back plate
+  add(new THREE.BoxGeometry(0.24, 0.26, 0.08), 0, 0.67, -0.1);
+  // Pauldron left shoulder guard
+  add(new THREE.SphereGeometry(0.085, 8, 6), -0.175, 0.8, 0.0);
+  // Pauldron right shoulder guard
+  add(new THREE.SphereGeometry(0.085, 8, 6), 0.175, 0.8, 0.0);
+
+  // ── Cape / cloak flowing behind ───────────────────────────────────────────
+  // Cape body — wide flat box angled slightly outward
+  add(new THREE.BoxGeometry(0.3, 0.5, 0.06), 0, 0.55, -0.13);
+  // Cape lower flare (wider at bottom)
+  add(new THREE.BoxGeometry(0.34, 0.1, 0.05), 0, 0.3, -0.14);
+
+  // ── Crossed arms holding weapons ─────────────────────────────────────────
+  // Left upper arm (angled inward across chest)
+  add(new THREE.CylinderGeometry(0.048, 0.058, 0.2, 7), -0.12, 0.73, 0.05, 0, 0, 0.9);
+  // Left forearm (crossing right)
+  add(new THREE.CylinderGeometry(0.04, 0.05, 0.18, 7), 0.02, 0.65, 0.06, 0, 0, 0.6);
+  // Right upper arm (angled inward across chest)
+  add(new THREE.CylinderGeometry(0.048, 0.058, 0.2, 7), 0.12, 0.73, 0.05, 0, 0, -0.9);
+  // Right forearm (crossing left)
+  add(new THREE.CylinderGeometry(0.04, 0.05, 0.18, 7), -0.02, 0.65, 0.06, 0, 0, -0.6);
+
+  // ── Weapons (crossed swords / sceptre) ───────────────────────────────────
+  // Left sword blade (thin tall box, angled)
+  add(new THREE.BoxGeometry(0.025, 0.3, 0.018), -0.1, 0.52, 0.07, 0, 0, 0.25);
+  // Right sword/sceptre blade
+  add(new THREE.BoxGeometry(0.025, 0.3, 0.018), 0.1, 0.52, 0.07, 0, 0, -0.25);
+  // Crossguard left
+  add(new THREE.BoxGeometry(0.1, 0.022, 0.022), -0.1, 0.44, 0.07);
+  // Crossguard right
+  add(new THREE.BoxGeometry(0.1, 0.022, 0.022), 0.1, 0.44, 0.07);
+
+  // ── Great helm / visored helmet ───────────────────────────────────────────
+  // Neck guard (gorget)
+  add(new THREE.CylinderGeometry(0.085, 0.1, 0.07, 10), 0, 0.865);
+  // Helm dome (full sphere top)
+  add(new THREE.SphereGeometry(0.115, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.6), 0, 0.935, 0.0);
+  // Helm face plate (flat front visor)
+  add(new THREE.BoxGeometry(0.115, 0.1, 0.025), 0, 0.9, 0.108);
+  // Visor slit (recessed bar — slightly inset)
+  add(new THREE.BoxGeometry(0.085, 0.018, 0.012), 0, 0.908, 0.118);
+  // Helm brim / aventail
+  add(new THREE.CylinderGeometry(0.135, 0.13, 0.028, 12), 0, 0.875);
+
+  // ── Crown atop helm ───────────────────────────────────────────────────────
+  const crownRimY = 0.998;
+  addGold(new THREE.CylinderGeometry(0.108, 0.112, 0.035, 12), 0, crownRimY);
+  // 5 crown points
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    addGold(
+      new THREE.ConeGeometry(0.022, 0.075, 6),
+      Math.cos(a) * 0.09,
+      crownRimY + 0.055,
+      Math.sin(a) * 0.09,
+    );
+  }
+
+  return g;
 }
 
 /** Adds 5 crown spike points around the queen rim. */
@@ -161,8 +260,9 @@ export function createPieceGroup(
     envMapIntensity: base.envMapIntensity,
   });
 
-  // Rook uses a composite warrior group instead of a lathe profile.
+  // Rook and king use composite warrior groups instead of lathe profiles.
   if (type === 'r') return buildRookGroup(mat);
+  if (type === 'k') return buildKingGroup(mat);
 
   const profile = PIECE_PROFILES[type];
   const geo = buildLatheGeometry(type);
@@ -174,7 +274,6 @@ export function createPieceGroup(
   const group = new THREE.Group();
   group.add(mesh);
 
-  if (type === 'k') addKingCross(group, profile.height);
   if (type === 'q') addQueenCrown(group, profile.height, 0.24);
 
   return group;

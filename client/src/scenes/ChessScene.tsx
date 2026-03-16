@@ -382,6 +382,9 @@ function GameLogic({
   const bobSprings = useRef(new Map<Square, Spring>());
   // Per-piece rim-light uniforms — animated on select/deselect
   const rimUniformsMap = useRef(new Map<Square, RimUniforms>());
+  // Tracks piece meshes that have been colour-tinted for highlights, so we can restore them.
+  // We clone the material before tinting so shared material instances are not mutated globally.
+  const tintedMeshes = useRef<{ mesh: THREE.Mesh; origMat: THREE.MeshStandardMaterial }[]>([]);
 
   // ── Camera helpers ─────────────────────────────────────────────────────────
 
@@ -542,6 +545,26 @@ function GameLogic({
 
   // ── Highlight helpers ──────────────────────────────────────────────────────
 
+  // Tint all standard meshes in a piece group to a target colour.
+  // Clones the material per-mesh so shared material instances are not globally mutated.
+  const tintPiece = useCallback(
+    (pieceObj: PieceObject, color: number, emissive: number, emissiveIntensity: number) => {
+      pieceObj.traverse((child) => {
+        if (!(child instanceof THREE.Mesh)) return;
+        const origMat = child.material as THREE.MeshStandardMaterial;
+        if (!origMat.color) return;
+        const cloned = origMat.clone();
+        cloned.color.setHex(color);
+        cloned.emissive.setHex(emissive);
+        cloned.emissiveIntensity = emissiveIntensity;
+        cloned.needsUpdate = true;
+        child.material = cloned;
+        tintedMeshes.current.push({ mesh: child, origMat });
+      });
+    },
+    [],
+  );
+
   const clearHighlights = useCallback(() => {
     for (const m of highlightMeshes.current) {
       scene.remove(m);
@@ -552,8 +575,13 @@ function GameLogic({
     for (const [sq, mat] of tileMats.current) {
       mat.color.setHex(isLightSquare(sq) ? theme.lightTile : theme.darkTile);
     }
-    // Reset rim glow on all pieces — covers both the selected piece (gold) and
-    // any capture-highlighted enemy pieces (red) that were lit by highlightLegalMoves.
+    // Restore original shared material and dispose the per-highlight clone
+    for (const { mesh, origMat } of tintedMeshes.current) {
+      (mesh.material as THREE.MeshStandardMaterial).dispose();
+      mesh.material = origMat;
+    }
+    tintedMeshes.current.length = 0;
+    // Reset rim glow on all pieces
     for (const rim of rimUniformsMap.current.values()) {
       gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
     }
@@ -585,8 +613,10 @@ function GameLogic({
         scene.add(circle);
         highlightMeshes.current.push(circle);
 
-        // For capturable enemy pieces, add a red/orange rim glow
+        // For capturable enemy pieces — tint the piece mesh red + rim glow
         if (isCapture) {
+          const enemyPiece = pieceMeshes.current.get(sq);
+          if (enemyPiece) tintPiece(enemyPiece, 0xcc1100, 0x660000, 0.4);
           const rimOn = rimUniformsMap.current.get(sq);
           if (rimOn) {
             rimOn.uRimColor.value.set(0xff2200);
@@ -661,6 +691,54 @@ function GameLogic({
     [scene],
   );
 
+  // ── Castling rook animation ────────────────────────────────────────────────
+
+  // Slides the rook to its post-castling square immediately after the king lands.
+  // chess.js has already applied the move by this point, so we just animate the mesh.
+  const animateCastlingRook = useCallback((rookFromSq: Square, rookToSq: Square): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      const rookMesh = pieceMeshes.current.get(rookFromSq);
+      if (!rookMesh) {
+        resolve();
+        return;
+      }
+
+      const [rx, rz] = squareToXZ(rookToSq);
+
+      // Update data structures before the tween so raycasting is correct
+      pieceMeshes.current.delete(rookFromSq);
+      pieceMeshes.current.set(rookToSq, rookMesh);
+      rookMesh.userData.square = rookToSq;
+      const rookSpring = bobSprings.current.get(rookFromSq);
+      if (rookSpring) {
+        bobSprings.current.delete(rookFromSq);
+        bobSprings.current.set(rookToSq, rookSpring);
+      }
+      const rookRim = rimUniformsMap.current.get(rookFromSq);
+      if (rookRim) {
+        rimUniformsMap.current.delete(rookFromSq);
+        rimUniformsMap.current.set(rookToSq, rookRim);
+      }
+
+      gsap.killTweensOf(rookMesh.position);
+      // Low arc — rook glides with a shallow hop
+      gsap.to(rookMesh.position, {
+        x: rx,
+        z: rz,
+        duration: 0.35,
+        ease: 'power2.inOut',
+        onComplete: resolve,
+      });
+      gsap.to(rookMesh.position, {
+        y: 0.6,
+        duration: 0.175,
+        ease: 'power2.out',
+        yoyo: true,
+        repeat: 1,
+      });
+    });
+  }, []);
+
   // ── Move execution ─────────────────────────────────────────────────────────
 
   const executeMove = useCallback(
@@ -680,6 +758,22 @@ function GameLogic({
         }
       }
 
+      // Detect castling before chess.js applies the move.
+      // chess.js encodes castling as a king moving 2 squares horizontally.
+      const movingPieceData = chessRef.current.get(fromSq);
+      const isCastling =
+        movingPieceData?.type === 'k' && Math.abs(fromSq.charCodeAt(0) - toSq.charCodeAt(0)) === 2;
+
+      // Determine rook squares before the move mutates chess.js state
+      let rookFromSq: Square | null = null;
+      let rookToSq: Square | null = null;
+      if (isCastling) {
+        const rank = fromSq[1]; // '1' or '8'
+        const isKingside = toSq[0] === 'g';
+        rookFromSq = (isKingside ? `h${rank}` : `a${rank}`) as Square;
+        rookToSq = (isKingside ? `f${rank}` : `d${rank}`) as Square;
+      }
+
       chessRef.current.move({ from: fromSq, to: toSq, promotion: 'q' });
       pieceMeshes.current.delete(fromSq);
       pieceMeshes.current.set(toSq, movingMesh);
@@ -695,6 +789,8 @@ function GameLogic({
         rimUniformsMap.current.delete(fromSq);
         rimUniformsMap.current.set(toSq, rim);
       }
+      // Pass both king dest and rook dest as skip squares so reconcilePieces
+      // doesn't teleport either piece while they are mid-animation.
       reconcilePieces(toSq);
 
       if (!isCapture) soundsRef.current?.move.play();
@@ -731,7 +827,19 @@ function GameLogic({
             }
           });
           movingPiece.current = null;
-          animInProgress.current = false;
+
+          // Animate rook after king lands (castling only)
+          if (isCastling && rookFromSq && rookToSq) {
+            animateCastlingRook(rookFromSq, rookToSq)
+              .then(() => {
+                animInProgress.current = false;
+              })
+              .catch(() => {
+                animInProgress.current = false;
+              });
+          } else {
+            animInProgress.current = false;
+          }
         },
       });
 
@@ -780,7 +888,7 @@ function GameLogic({
           ease: 'elastic.out(1, 0.4)',
         });
     },
-    [captureCamera, cameraShake, playCaptureAnimation, reconcilePieces],
+    [animateCastlingRook, captureCamera, cameraShake, playCaptureAnimation, reconcilePieces],
   );
 
   // ── Pointer interaction ────────────────────────────────────────────────────
@@ -857,7 +965,9 @@ function GameLogic({
           .map((m) => m.to as Square);
         highlightLegalMoves(legalTargets.current);
 
-        // Rim light on — gold for selected piece
+        // Tint selected piece gold + rim glow
+        const selectedPiece = pieceMeshes.current.get(sq);
+        if (selectedPiece) tintPiece(selectedPiece, 0xffcc00, 0xffaa00, 0.35);
         const rimOn = rimUniformsMap.current.get(sq);
         if (rimOn) {
           rimOn.uRimColor.value.set(0xffd700);

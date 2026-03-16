@@ -6,6 +6,7 @@ import { TransfigurationEffect } from './Transfiguration';
 import { ReductoEffect } from './Reducto';
 import { AvadaKedavraEffect } from './AvadaKedavra';
 import { FiendfyreEffect } from './Fiendfyre';
+import { QueenSwordEffect } from './QueenSword';
 
 export type { CaptureEffect, SpellName };
 
@@ -34,5 +35,7 @@ export function createCaptureEffect(
       return new AvadaKedavraEffect(group, attackerPos, victim, onReady);
     case 'fiendFyre':
       return new FiendfyreEffect(group, attackerPos, victim, onReady);
+    case 'queenSword':
+      return new QueenSwordEffect(group, attackerPos, victim, onReady);
   }
 }

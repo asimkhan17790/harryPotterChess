@@ -7,6 +7,6 @@ export const CAPTURE_ANIMATIONS: Record<PieceSymbol, SpellName> = {
   n: 'expectoPatronum',
   b: 'fiendFyre', // Bishop wizard — burns victim with fire
   r: 'reducto',
-  q: 'avadaKedavra',
+  q: 'queenSword',
   k: 'fiendFyre',
 };

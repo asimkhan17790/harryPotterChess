@@ -4,7 +4,8 @@ export type SpellName =
   | 'transfiguration'
   | 'reducto'
   | 'avadaKedavra'
-  | 'fiendFyre';
+  | 'fiendFyre'
+  | 'queenSword';
 
 /** Every capture-animation effect must implement this interface. */
 export interface CaptureEffect {

@@ -821,10 +821,12 @@ function GameLogic({
         for (const [rsq, rimOff] of rimUniformsMap.current) {
           if (rsq !== sq) gsap.to(rimOff.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
-        // DoF — focus on selected piece distance
+        // DoF — tighten focus slightly toward selected piece
         const selMesh = pieceMeshes.current.get(sq);
         if (selMesh) {
-          dofTargetRef.current = camera.position.distanceTo(selMesh.position) / 100;
+          // Map world distance (~8–20 units) to focusDistance range 0.02–0.06
+          const dist = camera.position.distanceTo(selMesh.position);
+          dofTargetRef.current = Math.max(0.02, Math.min(0.06, dist / 400));
         }
       } else {
         clearHighlights();
@@ -834,8 +836,8 @@ function GameLogic({
         for (const rim of rimUniformsMap.current.values()) {
           gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
-        // DoF — defocus (pull back toward infinity)
-        dofTargetRef.current = 0.0;
+        // DoF — return to default board focus
+        dofTargetRef.current = 0.035;
       }
     },
     [
@@ -907,9 +909,9 @@ function DynamicDOF({ targetRef }: { targetRef: React.MutableRefObject<number> }
   return (
     <DepthOfField
       ref={effectRef}
-      focusDistance={0.0}
-      focalLength={0.06}
-      bokehScale={1.8}
+      focusDistance={0.035}
+      focalLength={0.2}
+      bokehScale={0.8}
       blendFunction={BlendFunction.NORMAL}
     />
   );
@@ -945,8 +947,8 @@ export default function ChessScene() {
   const theme = HOUSE_THEMES[house as HouseName];
 
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
-  // Shared mutable target for DoF focus distance (0–1 normalized)
-  const dofTargetRef = useRef(0.0);
+  // Shared mutable target for DoF focus distance — starts at board focus depth
+  const dofTargetRef = useRef(0.035);
 
   return (
     <div style={{ width: '100%', height: '100vh' }}>

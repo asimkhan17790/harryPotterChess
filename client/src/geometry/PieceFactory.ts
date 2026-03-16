@@ -44,6 +44,72 @@ function buildLatheGeometry(type: PieceSymbol): THREE.BufferGeometry {
   return geo;
 }
 
+// ── Rook: armored warrior on octagonal pedestal ──────────────────────────────
+
+/**
+ * Builds a rook as a crouching armored warrior on a stepped octagonal base,
+ * inspired by the Harry Potter wizard chess set aesthetic.
+ * All sub-meshes share the same material instance passed in.
+ */
+export function buildRookGroup(mat: THREE.MeshStandardMaterial): THREE.Group {
+  const g = new THREE.Group();
+
+  const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    g.add(m);
+    return m;
+  };
+
+  // ── Pedestal: two stepped octagonal tiers ────────────────────────────────
+  // Bottom tier — wide, thin
+  add(new THREE.CylinderGeometry(0.34, 0.36, 0.08, 8), 0, 0.04);
+  // Middle tier — narrower
+  add(new THREE.CylinderGeometry(0.28, 0.32, 0.07, 8), 0, 0.115);
+  // Top platform
+  add(new THREE.CylinderGeometry(0.24, 0.26, 0.06, 8), 0, 0.18);
+
+  // ── Torso: crouching, broad warrior body ─────────────────────────────────
+  // Main body — slightly forward lean via z-offset on a box
+  add(new THREE.BoxGeometry(0.3, 0.28, 0.22), 0, 0.37, 0.02);
+  // Back plate / backpack hump — thicker behind
+  add(new THREE.BoxGeometry(0.24, 0.2, 0.1), 0, 0.38, -0.1);
+  // Belt / waist band
+  add(new THREE.CylinderGeometry(0.16, 0.18, 0.05, 8), 0, 0.245);
+  // Chainmail skirt flair at hips
+  add(new THREE.CylinderGeometry(0.2, 0.22, 0.06, 8), 0, 0.215);
+
+  // ── Arms ─────────────────────────────────────────────────────────────────
+  // Left upper arm
+  add(new THREE.CylinderGeometry(0.055, 0.065, 0.18, 7), -0.19, 0.37, 0.0, 0, 0, 0.55);
+  // Left forearm (angled down, resting on base)
+  add(new THREE.CylinderGeometry(0.045, 0.055, 0.16, 7), -0.24, 0.26, 0.06, 0, 0, 0.9);
+  // Right arm stub (hidden behind shield)
+  add(new THREE.CylinderGeometry(0.055, 0.065, 0.14, 7), 0.17, 0.37, 0.0, 0, 0, -0.45);
+
+  // ── Shield — large round-top oval disc on the left arm ───────────────────
+  // Outer shield face (wide flat disc)
+  const shieldOuter = new THREE.CylinderGeometry(0.22, 0.22, 0.025, 14);
+  add(shieldOuter, -0.26, 0.4, -0.04, Math.PI / 2, 0.3, -0.15);
+  // Shield boss (central raised dome)
+  add(new THREE.SphereGeometry(0.055, 8, 6), -0.3, 0.41, -0.14);
+  // Shield rim edge
+  const shieldRim = new THREE.TorusGeometry(0.21, 0.018, 6, 16);
+  add(shieldRim, -0.26, 0.4, -0.04, Math.PI / 2, 0.3, -0.15);
+
+  // ── Helmet ────────────────────────────────────────────────────────────────
+  // Dome
+  add(new THREE.SphereGeometry(0.115, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.55), 0, 0.56, 0.0);
+  // Wide flat brim
+  add(new THREE.CylinderGeometry(0.16, 0.155, 0.03, 10), 0, 0.555, 0.0);
+  // Face guard — small flat plate
+  add(new THREE.BoxGeometry(0.08, 0.06, 0.025), 0, 0.52, 0.1);
+
+  return g;
+}
+
 /** Adds a king cross (vertical + horizontal bar) merged on top of the lathe mesh. */
 function addKingCross(group: THREE.Group, topY: number): void {
   const mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 });
@@ -81,9 +147,6 @@ export function createPieceGroup(
   house: HouseName | null = null,
   envMap: THREE.Texture | null = null,
 ): THREE.Group {
-  const profile = PIECE_PROFILES[type];
-  const geo = buildLatheGeometry(type);
-
   const base = { ...BASE_MATERIALS[side] };
   // Only tint black pieces with the house colour; white stays ivory.
   if (side === 'b' && house && HOUSE_OVERRIDES_BLACK[house]) {
@@ -97,6 +160,12 @@ export function createPieceGroup(
     envMap: envMap ?? undefined,
     envMapIntensity: base.envMapIntensity,
   });
+
+  // Rook uses a composite warrior group instead of a lathe profile.
+  if (type === 'r') return buildRookGroup(mat);
+
+  const profile = PIECE_PROFILES[type];
+  const geo = buildLatheGeometry(type);
 
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;

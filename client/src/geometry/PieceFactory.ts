@@ -234,6 +234,77 @@ function addQueenCrown(group: THREE.Group, rimY: number, rimR: number): void {
   }
 }
 
+// ── Bishop: robed wizard bishop with mitre and crozier ───────────────────────
+
+/**
+ * Builds a bishop as a tall robed wizard figure — octagonal stepped base,
+ * long layered vestment robes, raised blessing hand, crozier staff with
+ * curved crook, and a pointed mitre hat.
+ */
+export function buildBishopGroup(mat: THREE.MeshStandardMaterial): THREE.Group {
+  const g = new THREE.Group();
+
+  const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    g.add(m);
+    return m;
+  };
+
+  // ── Octagonal stepped base ────────────────────────────────────────────────
+  add(new THREE.CylinderGeometry(0.3, 0.33, 0.06, 8), 0, 0.03); // bottom slab
+  add(new THREE.CylinderGeometry(0.24, 0.28, 0.055, 8), 0, 0.088); // mid tier
+  add(new THREE.CylinderGeometry(0.2, 0.23, 0.05, 8), 0, 0.138); // top platform
+
+  // ── Long outer vestment robe (wide flared cone) ───────────────────────────
+  // Base of robe — widest at hem
+  add(new THREE.CylinderGeometry(0.19, 0.21, 0.36, 10), 0, 0.34);
+  // Upper robe — tapers toward chest
+  add(new THREE.CylinderGeometry(0.14, 0.18, 0.28, 10), 0, 0.6);
+  // Central vestment panel (decorative front slab)
+  add(new THREE.BoxGeometry(0.1, 0.42, 0.03), 0, 0.45, 0.17);
+
+  // ── Shoulder mantle / cape collar ────────────────────────────────────────
+  add(new THREE.CylinderGeometry(0.155, 0.18, 0.06, 10), 0, 0.775); // shoulder cape
+  // Gorget / neck band
+  add(new THREE.CylinderGeometry(0.075, 0.09, 0.055, 10), 0, 0.835);
+
+  // ── Head ─────────────────────────────────────────────────────────────────
+  add(new THREE.SphereGeometry(0.075, 10, 8), 0, 0.915);
+
+  // ── Mitre (bishop's pointed hat) — two-part tapered form ─────────────────
+  // Wide brim band of mitre
+  add(new THREE.CylinderGeometry(0.085, 0.085, 0.03, 10), 0, 0.975);
+  // Lower mitre body
+  add(new THREE.CylinderGeometry(0.065, 0.082, 0.1, 8), 0, 1.045);
+  // Upper mitre point
+  add(new THREE.ConeGeometry(0.052, 0.15, 8), 0, 1.17);
+
+  // ── Right arm — raised in blessing ───────────────────────────────────────
+  // Upper arm angled outward and up
+  add(new THREE.CylinderGeometry(0.036, 0.044, 0.16, 7), 0.12, 0.75, 0.02, 0, 0, -0.75);
+  // Forearm raised upward
+  add(new THREE.CylinderGeometry(0.028, 0.036, 0.14, 7), 0.19, 0.83, 0.02, 0, 0, -1.2);
+  // Hand (small sphere)
+  add(new THREE.SphereGeometry(0.032, 7, 6), 0.195, 0.94, 0.02);
+
+  // ── Left arm — holding crozier staff ─────────────────────────────────────
+  add(new THREE.CylinderGeometry(0.036, 0.044, 0.16, 7), -0.11, 0.75, 0.02, 0, 0, 0.5);
+  add(new THREE.CylinderGeometry(0.028, 0.036, 0.12, 7), -0.15, 0.65, 0.03, 0, 0, 0.3);
+
+  // ── Crozier staff (tall vertical rod held in left hand) ───────────────────
+  // Shaft — tall cylinder beside figure
+  add(new THREE.CylinderGeometry(0.016, 0.016, 0.8, 7), -0.21, 0.6, 0.03);
+  // Neck of crook
+  add(new THREE.CylinderGeometry(0.013, 0.016, 0.1, 6), -0.21, 1.01, 0.03, 0, 0, 0.3);
+  // The curl — torus segment approximated with a torus
+  add(new THREE.TorusGeometry(0.055, 0.012, 6, 12, Math.PI * 1.5), -0.245, 1.075, 0.03, 0, 0, -0.4);
+
+  return g;
+}
+
 // ── Rim light shader injection ────────────────────────────────────────────────
 
 export interface RimUniforms {
@@ -303,9 +374,10 @@ export function createPieceGroup(
   });
   const rimUniforms = injectRimLight(mat);
 
-  // Rook and king use composite warrior groups instead of lathe profiles.
+  // Composite figure groups — rook, king, bishop
   if (type === 'r') return { group: buildRookGroup(mat), rimUniforms };
   if (type === 'k') return { group: buildKingGroup(mat), rimUniforms };
+  if (type === 'b') return { group: buildBishopGroup(mat), rimUniforms };
 
   const profile = PIECE_PROFILES[type];
   const geo = buildLatheGeometry(type);

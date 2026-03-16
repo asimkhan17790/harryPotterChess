@@ -5,7 +5,7 @@ import type { SpellName } from '../effects/types';
 export const CAPTURE_ANIMATIONS: Record<PieceSymbol, SpellName> = {
   p: 'wingardiumLeviosa',
   n: 'expectoPatronum',
-  b: 'transfiguration',
+  b: 'fiendFyre', // Bishop wizard — burns victim with fire
   r: 'reducto',
   q: 'avadaKedavra',
   k: 'fiendFyre',

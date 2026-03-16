@@ -255,12 +255,16 @@ function injectRimLight(mat: THREE.MeshStandardMaterial): RimUniforms {
     shader.uniforms.uRimColor = uniforms.uRimColor;
     shader.uniforms.uRimIntensity = uniforms.uRimIntensity;
 
+    // Declare uniforms at top of fragment shader
+    shader.fragmentShader =
+      `uniform vec3 uRimColor;\nuniform float uRimIntensity;\n` + shader.fragmentShader;
+
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <dithering_fragment>',
       `
       // Fresnel rim light
-      vec3 viewDir = normalize(vViewPosition);
-      float rim = 1.0 - max(dot(viewDir, normalize(vNormal)), 0.0);
+      vec3 rimViewDir = normalize(vViewPosition);
+      float rim = 1.0 - max(dot(rimViewDir, normalize(vNormal)), 0.0);
       rim = pow(rim, 3.0);
       outgoingLight += uRimColor * rim * uRimIntensity;
       #include <dithering_fragment>

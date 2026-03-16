@@ -35,14 +35,7 @@ import {
   Sparkles,
   MeshReflectorMaterial,
 } from '@react-three/drei';
-import {
-  EffectComposer,
-  Bloom,
-  ChromaticAberration,
-  Vignette,
-  DepthOfField,
-  SSAO,
-} from '@react-three/postprocessing';
+import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 import { Chess } from 'chess.js';
@@ -347,11 +340,9 @@ function FloatingCandles({ candleColor }: { candleColor: number }) {
 function GameLogic({
   house,
   controlsRef,
-  dofRef,
 }: {
   house: HouseName;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
-  dofRef: React.MutableRefObject<DepthOfField | null>;
 }) {
   const theme = HOUSE_THEMES[house];
   const { scene, camera, gl } = useThree();
@@ -811,16 +802,6 @@ function GameLogic({
           .map((m) => m.to as Square);
         highlightLegalMoves(legalTargets.current);
 
-        // Dynamic DoF — focus on selected piece
-        const pieceMesh = pieceMeshes.current.get(sq);
-        if (pieceMesh && dofRef.current) {
-          const dist = camera.position.distanceTo(pieceMesh.position);
-          gsap.to(dofRef.current, {
-            focusDistance: dist / 100,
-            duration: 0.4,
-            ease: 'power2.out',
-          });
-        }
         // Rim light on — gold for selected piece
         const rimOn = rimUniformsMap.current.get(sq);
         if (rimOn) {
@@ -835,10 +816,6 @@ function GameLogic({
         clearHighlights();
         selectedSquare.current = null;
         legalTargets.current = [];
-        // Defocus when deselecting
-        if (dofRef.current) {
-          gsap.to(dofRef.current, { focusDistance: 0.0, duration: 0.4, ease: 'power2.out' });
-        }
         // Rim light off — all pieces
         for (const rim of rimUniformsMap.current.values()) {
           gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
@@ -848,7 +825,6 @@ function GameLogic({
     [
       camera,
       clearHighlights,
-      dofRef,
       executeMove,
       getClickedSquare,
       highlightLegalMoves,
@@ -895,22 +871,9 @@ function GameLogic({
 
 // ── Post-processing ──────────────────────────────────────────────────────────
 
-function PostFX({ dofRef }: { dofRef: React.MutableRefObject<DepthOfField | null> }) {
+function PostFX() {
   return (
     <EffectComposer>
-      <SSAO
-        radius={0.4}
-        intensity={20}
-        luminanceInfluence={0.6}
-        blendFunction={BlendFunction.MULTIPLY}
-      />
-      <DepthOfField
-        ref={dofRef}
-        focusDistance={0.0}
-        focalLength={0.08}
-        bokehScale={2.5}
-        blendFunction={BlendFunction.NORMAL}
-      />
       <Bloom
         intensity={0.2}
         luminanceThreshold={0.9}
@@ -935,7 +898,6 @@ export default function ChessScene() {
   const theme = HOUSE_THEMES[house as HouseName];
 
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
-  const dofRef = useRef<DepthOfField | null>(null);
 
   return (
     <div style={{ width: '100%', height: '100vh' }}>
@@ -999,7 +961,7 @@ export default function ChessScene() {
         />
 
         {/* All game logic + board + pieces */}
-        <GameLogic house={house as HouseName} controlsRef={controlsRef} dofRef={dofRef} />
+        <GameLogic house={house as HouseName} controlsRef={controlsRef} />
 
         {/* Camera controls */}
         <OrbitControls
@@ -1015,7 +977,7 @@ export default function ChessScene() {
         />
 
         {/* Post-processing */}
-        <PostFX dofRef={dofRef} />
+        <PostFX />
       </Canvas>
     </div>
   );

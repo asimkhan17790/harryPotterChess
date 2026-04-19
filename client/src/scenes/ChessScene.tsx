@@ -14,7 +14,7 @@
  * Pieces: LatheGeometry silhouettes via PieceFactory (no more BoxGeometry).
  */
 
-import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
+import { useRef, useEffect, useMemo, useCallback, useState, Fragment } from 'react';
 import hogwartsBg from '../assets/hogwarts_BG.png';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import gsap from 'gsap';
@@ -44,6 +44,10 @@ import type { Color, PieceSymbol, Square } from 'chess.js';
 import { Howl } from 'howler';
 import { squareToXZ, indicesToSquare, isLightSquare } from '../utils/chessCoords';
 import { useHouseStore } from '../stores/houseStore';
+import { useGameStore } from '../stores/gameStore';
+import type { GameResult } from '../stores/gameStore';
+import { useStockfish } from '../hooks/useStockfish';
+import type { Difficulty } from '../utils/difficultyMapping';
 import { HOUSE_THEMES } from '../data/houseThemes';
 import { CAPTURE_ANIMATIONS } from '../data/captureAnimations';
 import { createCaptureEffect } from '../effects/index';
@@ -53,6 +57,32 @@ import type { RimUniforms } from '../geometry/PieceFactory';
 import { onModelsReady } from '../geometry/gltfPieceCache';
 import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
+
+// ── Victory screen CSS injected once at module load ──────────────────────────
+if (typeof document !== 'undefined' && !document.getElementById('hp-victory-styles')) {
+  const s = document.createElement('style');
+  s.id = 'hp-victory-styles';
+  s.textContent = `
+    @keyframes vOverlayIn { from { opacity:0 } to { opacity:1 } }
+    @keyframes vCardIn { from { opacity:0; transform:scale(0.6) translateY(40px) } to { opacity:1; transform:scale(1) translateY(0) } }
+    @keyframes vTrophyBounce { 0%,100%{transform:translateY(0) scale(1)} 40%{transform:translateY(-18px) scale(1.15)} 70%{transform:translateY(-6px) scale(1.05)} }
+    @keyframes vTitleGlow { 0%,100%{text-shadow:0 0 20px currentColor,0 0 40px currentColor} 50%{text-shadow:0 0 40px currentColor,0 0 80px currentColor,0 0 120px currentColor} }
+    @keyframes vBtnPulse { 0%,100%{box-shadow:0 0 10px currentColor} 50%{box-shadow:0 0 24px currentColor,0 0 40px currentColor} }
+    @keyframes fwRise { 0%{transform:translateY(0) scaleY(1);opacity:1} 60%{opacity:1} 100%{transform:translateY(-220px) scaleY(1.3);opacity:0} }
+    @keyframes fwBurst { 0%{transform:scale(0);opacity:1} 60%{opacity:.9} 100%{transform:scale(1);opacity:0} }
+    @keyframes fwStar { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0.3)} }
+    @keyframes vSparkle { 0%,100%{opacity:0;transform:scale(0)} 50%{opacity:1;transform:scale(1)} }
+    @keyframes vFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+    @keyframes vDialogIn { from{opacity:0;transform:scale(0.7) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    @keyframes vDialogRing { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes vDialogRingRev { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+    @keyframes vWarnPulse { 0%,100%{filter:drop-shadow(0 0 6px #ffcc44) drop-shadow(0 0 12px #ff8800)} 50%{filter:drop-shadow(0 0 18px #ffdd00) drop-shadow(0 0 36px #ff6600)} }
+    @keyframes vShimmerTitle { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    @keyframes vRuneDrift { 0%,100%{opacity:.12;transform:translateY(0) rotate(0deg)} 50%{opacity:.38;transform:translateY(-10px) rotate(6deg)} }
+    @keyframes vBeamIn { from{opacity:0;transform:scaleX(0)} to{opacity:1;transform:scaleX(1)} }
+  `;
+  document.head.appendChild(s);
+}
 
 // ── Module-level singletons shared between PostFX and KnightChargeEffect ─────
 // These are plain Three.js objects — not React state — so they live outside
@@ -174,53 +204,6 @@ function ChessBoard({
 
 // ── Floating candles ─────────────────────────────────────────────────────────
 
-// ── Realistic candle flame helpers ───────────────────────────────────────────
-
-/** Layered teardrop flame: cone base + elongated sphere tip */
-function buildFlameGroup(baseColor: number): {
-  group: THREE.Group;
-  mats: THREE.MeshBasicMaterial[];
-} {
-  const innerMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.95,
-    depthWrite: false,
-  });
-  const midMat = new THREE.MeshBasicMaterial({
-    color: 0xffdd44,
-    transparent: true,
-    opacity: 0.8,
-    depthWrite: false,
-  });
-  const outerMat = new THREE.MeshBasicMaterial({
-    color: baseColor,
-    transparent: true,
-    opacity: 0.55,
-    depthWrite: false,
-  });
-
-  // Inner bright core — tiny upright cone
-  const coreGeo = new THREE.ConeGeometry(0.018, 0.1, 6);
-  const core = new THREE.Mesh(coreGeo, innerMat);
-  core.position.y = 0.05;
-
-  // Mid teardrop — slightly wider cone
-  const midGeo = new THREE.ConeGeometry(0.03, 0.13, 7);
-  const mid = new THREE.Mesh(midGeo, midMat);
-  mid.position.y = 0.065;
-
-  // Outer halo — squashed sphere
-  const haloGeo = new THREE.SphereGeometry(0.045, 7, 5);
-  const halo = new THREE.Mesh(haloGeo, outerMat);
-  halo.scale.y = 1.6;
-  halo.position.y = 0.06;
-
-  const group = new THREE.Group();
-  group.add(halo, mid, core);
-  return { group, mats: [innerMat, midMat, outerMat] };
-}
-
 /** Smooth pseudo-random noise: sum of sines at different frequencies */
 function flameNoise(t: number, seed: number): number {
   return (
@@ -231,58 +214,170 @@ function flameNoise(t: number, seed: number): number {
   );
 }
 
+/** Canvas-based teardrop flame texture — drawn once, tinted per house */
+function createFlameTexture(baseColor: number): THREE.CanvasTexture {
+  const w = 64,
+    h = 96;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d')!;
+
+  const col = new THREE.Color(baseColor);
+  const br = Math.round(col.r * 255);
+  const bg = Math.round(col.g * 255);
+  const bb = Math.round(col.b * 255);
+
+  // Outer halo (house colour)
+  const outerG = ctx.createRadialGradient(w / 2, h * 0.5, 0, w / 2, h * 0.45, 28);
+  outerG.addColorStop(0, `rgba(${br},${bg},${bb},0.65)`);
+  outerG.addColorStop(0.65, `rgba(${Math.min(br + 40, 255)},${Math.round(bg * 0.6)},0,0.28)`);
+  outerG.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = outerG;
+  ctx.beginPath();
+  ctx.moveTo(w / 2, 5);
+  ctx.bezierCurveTo(w * 0.82, h * 0.22, w * 0.86, h * 0.62, w / 2, h * 0.88);
+  ctx.bezierCurveTo(w * 0.14, h * 0.62, w * 0.18, h * 0.22, w / 2, 5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Yellow-orange mid flame
+  const midG = ctx.createRadialGradient(w / 2, h * 0.56, 0, w / 2, h * 0.52, 18);
+  midG.addColorStop(0, 'rgba(255,220,60,0.95)');
+  midG.addColorStop(0.6, 'rgba(255,145,10,0.5)');
+  midG.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = midG;
+  ctx.beginPath();
+  ctx.moveTo(w / 2, 13);
+  ctx.bezierCurveTo(w * 0.7, h * 0.28, w * 0.72, h * 0.58, w / 2, h * 0.82);
+  ctx.bezierCurveTo(w * 0.28, h * 0.58, w * 0.3, h * 0.28, w / 2, 13);
+  ctx.closePath();
+  ctx.fill();
+
+  // White inner core
+  const coreG = ctx.createRadialGradient(w / 2, h * 0.63, 0, w / 2, h * 0.61, 10);
+  coreG.addColorStop(0, 'rgba(255,255,245,1)');
+  coreG.addColorStop(0.55, 'rgba(255,225,130,0.65)');
+  coreG.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = coreG;
+  ctx.beginPath();
+  ctx.ellipse(w / 2, h * 0.63, 8, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  return new THREE.CanvasTexture(c);
+}
+
+/** Single-blob smoke puff texture */
+function createSmokeTexture(): THREE.CanvasTexture {
+  const s = 32;
+  const c = document.createElement('canvas');
+  c.width = s;
+  c.height = s;
+  const ctx = c.getContext('2d')!;
+  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  g.addColorStop(0, 'rgba(210,210,230,0.55)');
+  g.addColorStop(0.5, 'rgba(160,160,195,0.22)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, s, s);
+  return new THREE.CanvasTexture(c);
+}
+
+interface SmokePuff {
+  sprite: THREE.Sprite;
+  ci: number;
+  age: number;
+  maxAge: number;
+  driftX: number;
+}
+
 function FloatingCandles({ candleColor }: { candleColor: number }) {
   const candleGroupsRef = useRef<THREE.Group[]>([]);
-  const flameGroupsRef = useRef<THREE.Group[]>([]);
+  const spritesRef = useRef<THREE.Sprite[]>([]);
   const lightsRef = useRef<THREE.PointLight[]>([]);
-  const flameMatsRef = useRef<THREE.MeshBasicMaterial[][]>([]);
-  // Per-candle seed for independent flicker
   const seedsRef = useRef<number[]>([]);
+  const smokeRef = useRef<SmokePuff[]>([]);
   const { scene } = useThree();
 
   useEffect(() => {
-    const bodyGeo = new THREE.CylinderGeometry(0.022, 0.026, 0.3, 8);
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0xfff8e0,
-      roughness: 0.95,
-      metalness: 0,
-    });
-    // Melted wax pool at top of candle
-    const waxGeo = new THREE.CylinderGeometry(0.028, 0.028, 0.008, 8);
-    const waxMat = new THREE.MeshStandardMaterial({
-      color: 0xfffacc,
-      roughness: 0.3,
-      metalness: 0,
-    });
+    const flameTex = createFlameTexture(candleColor);
+    const smokeTex = createSmokeTexture();
+
+    const bodyGeo = new THREE.CylinderGeometry(0.015, 0.027, 0.32, 8);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xfff8e0, roughness: 0.95 });
+    const waxGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.007, 8);
+    const waxMat = new THREE.MeshStandardMaterial({ color: 0xfffacc, roughness: 0.3 });
+    const dripGeo = new THREE.CylinderGeometry(0.003, 0.008, 0.058, 5);
+    const dripMat = new THREE.MeshStandardMaterial({ color: 0xfff3c8, roughness: 0.88 });
+    const dripMats: THREE.MeshStandardMaterial[] = [];
 
     for (let i = 0; i < CANDLE_COUNT; i++) {
       const baseAngle = (i / CANDLE_COUNT) * Math.PI * 2;
       const x = Math.cos(baseAngle) * CANDLE_RADIUS;
       const z = Math.sin(baseAngle) * CANDLE_RADIUS;
-      seedsRef.current.push(i * 1.618 + 0.42); // golden-ratio seed spacing
+      const seed = i * 1.618 + 0.42;
+      seedsRef.current.push(seed);
 
       const group = new THREE.Group();
       group.position.set(x, CANDLE_HEIGHT, z);
 
-      // Candle body (hangs below flame tip)
+      // Tapered candle body
       const body = new THREE.Mesh(bodyGeo, bodyMat);
-      body.position.y = -0.22;
+      body.position.y = -0.21;
       group.add(body);
 
-      // Wax pool at top
+      // Melted wax pool at top
       const wax = new THREE.Mesh(waxGeo, waxMat);
-      wax.position.y = -0.072;
+      wax.position.y = -0.05;
       group.add(wax);
 
-      // Flame
-      const { group: flame, mats } = buildFlameGroup(candleColor);
-      group.add(flame);
-      flameGroupsRef.current.push(flame);
-      flameMatsRef.current.push(mats);
+      // Wax drip — random side
+      const dripAngle = seed * 2.4;
+      const dm = dripMat.clone();
+      dripMats.push(dm);
+      const drip = new THREE.Mesh(dripGeo, dm);
+      drip.position.set(Math.cos(dripAngle) * 0.018, -0.1, Math.sin(dripAngle) * 0.018);
+      drip.rotation.z = Math.cos(dripAngle) * 0.35;
+      drip.rotation.x = Math.sin(dripAngle) * 0.35;
+      group.add(drip);
 
-      // Point light — warm orange-amber, tight radius
-      const light = new THREE.PointLight(0xff9922, 1.0, 5.5);
-      light.position.y = 0.12;
+      // Flame sprite (billboard — always faces camera automatically)
+      const flameMat = new THREE.SpriteMaterial({
+        map: flameTex,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        opacity: 0.92,
+      });
+      const flame = new THREE.Sprite(flameMat);
+      flame.scale.set(0.115, 0.165, 1);
+      flame.position.y = 0.06;
+      group.add(flame);
+      spritesRef.current.push(flame);
+
+      // Smoke wisp above flame
+      const sm = new THREE.SpriteMaterial({
+        map: smokeTex,
+        transparent: true,
+        depthWrite: false,
+        opacity: 0,
+      });
+      const smoke = new THREE.Sprite(sm);
+      const startProgress = i / CANDLE_COUNT; // stagger phases
+      smoke.scale.setScalar(0.05);
+      smoke.position.y = 0.1 + startProgress * 0.3;
+      group.add(smoke);
+      smokeRef.current.push({
+        sprite: smoke,
+        ci: i,
+        age: startProgress * 2.2,
+        maxAge: 1.8 + (seed % 1.0) * 0.8,
+        driftX: seed,
+      });
+
+      // Point light — warm orange-amber
+      const light = new THREE.PointLight(0xff9a22, 1.1, 5.8);
+      light.position.y = 0.14;
       group.add(light);
       lightsRef.current.push(light);
 
@@ -291,54 +386,224 @@ function FloatingCandles({ candleColor }: { candleColor: number }) {
     }
 
     return () => {
+      flameTex.dispose();
+      smokeTex.dispose();
       bodyGeo.dispose();
       bodyMat.dispose();
       waxGeo.dispose();
       waxMat.dispose();
-      for (const mats of flameMatsRef.current) mats.forEach((m) => m.dispose());
+      dripGeo.dispose();
+      dripMat.dispose();
+      dripMats.forEach((m) => m.dispose());
+      for (const s of spritesRef.current) (s.material as THREE.SpriteMaterial).dispose();
+      for (const s of smokeRef.current) (s.sprite.material as THREE.SpriteMaterial).dispose();
       for (const g of candleGroupsRef.current) scene.remove(g);
       candleGroupsRef.current = [];
-      flameGroupsRef.current = [];
+      spritesRef.current = [];
       lightsRef.current = [];
-      flameMatsRef.current = [];
       seedsRef.current = [];
+      smokeRef.current = [];
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candleColor]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const t = clock.elapsedTime;
+
     for (let i = 0; i < candleGroupsRef.current.length; i++) {
       const seed = seedsRef.current[i];
       const baseAngle = (i / CANDLE_COUNT) * Math.PI * 2;
 
       // Slow orbit
       const angle = baseAngle + t * 0.12;
-      const x = Math.cos(angle) * CANDLE_RADIUS;
       const y = CANDLE_HEIGHT + Math.sin(t * 0.4 + seed) * 0.12;
-      const z = Math.sin(angle) * CANDLE_RADIUS;
-      candleGroupsRef.current[i].position.set(x, y, z);
+      candleGroupsRef.current[i].position.set(
+        Math.cos(angle) * CANDLE_RADIUS,
+        y,
+        Math.sin(angle) * CANDLE_RADIUS,
+      );
 
-      // Turbulent flicker: drive flame tilt + scale with noise
+      // Turbulent flicker
       const nx = flameNoise(t, seed);
-      const ny = flameNoise(t, seed + 5.0);
-      const flicker = 0.5 + 0.5 * Math.abs(flameNoise(t * 0.7, seed + 2.3)); // 0..1
+      const flicker = 0.5 + 0.5 * Math.abs(flameNoise(t * 0.7, seed + 2.3));
 
-      const flameGroup = flameGroupsRef.current[i];
-      // Lean the flame in the wind direction
-      flameGroup.rotation.x = nx * 0.18;
-      flameGroup.rotation.z = -ny * 0.18;
-      // Elongate/squash vertically with flicker
-      flameGroup.scale.y = 0.85 + flicker * 0.35;
-      flameGroup.scale.x = 0.9 + (1 - flicker) * 0.2;
+      const sprite = spritesRef.current[i];
+      if (sprite) {
+        sprite.material.rotation = nx * 0.18;
+        sprite.scale.x = 0.1 + (1 - flicker) * 0.025;
+        sprite.scale.y = 0.14 + flicker * 0.048;
+        sprite.material.opacity = 0.68 + flicker * 0.3;
+      }
 
-      // Light intensity follows flicker, with a slow breath underneath
+      // Light breath
       const breath = 0.85 + 0.15 * Math.sin(t * 1.1 + seed);
-      lightsRef.current[i].intensity = (0.7 + flicker * 0.55) * breath;
+      lightsRef.current[i].intensity = (0.72 + flicker * 0.58) * breath;
+    }
 
-      // Outer halo opacity dims when flame is stretched tall
-      const outerMat = flameMatsRef.current[i][2];
-      if (outerMat) outerMat.opacity = 0.35 + flicker * 0.3;
+    // Smoke wisps
+    for (const s of smokeRef.current) {
+      s.age += delta * 0.42;
+      if (s.age >= s.maxAge) {
+        s.age = 0;
+        s.sprite.position.y = 0.1;
+        s.sprite.scale.setScalar(0.04);
+        (s.sprite.material as THREE.SpriteMaterial).opacity = 0;
+      } else {
+        const p = s.age / s.maxAge;
+        s.sprite.position.y = 0.1 + p * 0.38;
+        s.sprite.position.x = Math.sin(p * 4.5 + s.driftX) * 0.045;
+        s.sprite.scale.setScalar(0.04 + p * 0.09);
+        const opac = p < 0.25 ? (p / 0.25) * 0.22 : (1 - (p - 0.25) / 0.75) * 0.22;
+        (s.sprite.material as THREE.SpriteMaterial).opacity = opac;
+      }
+    }
+  });
+
+  return null;
+}
+
+// ── Wizard fireworks (Three.js particle bursts) ───────────────────────────────
+
+const FW_MAX = 4000;
+
+interface FWParticle {
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  age: number;
+  life: number;
+  r: number;
+  g: number;
+  b: number;
+}
+
+function WizardFireworks({ active, colors }: { active: boolean; colors: number[] }) {
+  const particles = useRef<FWParticle[]>([]);
+  const posArr = useRef(new Float32Array(FW_MAX * 3));
+  const colArr = useRef(new Float32Array(FW_MAX * 3));
+  const geoRef = useRef<THREE.BufferGeometry | null>(null);
+  const matRef = useRef<THREE.PointsMaterial | null>(null);
+  const nextBurst = useRef(0);
+  const { scene } = useThree();
+
+  useEffect(() => {
+    const geo = new THREE.BufferGeometry();
+    const posBuf = new THREE.BufferAttribute(posArr.current, 3);
+    const colBuf = new THREE.BufferAttribute(colArr.current, 3);
+    posBuf.setUsage(THREE.DynamicDrawUsage);
+    colBuf.setUsage(THREE.DynamicDrawUsage);
+    geo.setAttribute('position', posBuf);
+    geo.setAttribute('color', colBuf);
+    geo.setDrawRange(0, 0);
+    const mat = new THREE.PointsMaterial({
+      size: 0.18,
+      vertexColors: true,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const pts = new THREE.Points(geo, mat);
+    geoRef.current = geo;
+    matRef.current = mat;
+    scene.add(pts);
+    return () => {
+      scene.remove(pts);
+      geo.dispose();
+      mat.dispose();
+    };
+  }, [scene]);
+
+  useFrame((_, dt) => {
+    if (!active && particles.current.length === 0) return;
+
+    if (active) {
+      nextBurst.current -= dt;
+      if (nextBurst.current <= 0) {
+        // spawn burst
+        const bx = (Math.random() - 0.5) * 10;
+        const by = 4 + Math.random() * 6;
+        const bz = (Math.random() - 0.5) * 10;
+        const hex = colors[Math.floor(Math.random() * colors.length)];
+        const c = new THREE.Color(hex);
+        const c2 = new THREE.Color(0xffffff);
+        for (let i = 0; i < 100; i++) {
+          const th = Math.random() * Math.PI * 2;
+          const ph = Math.acos(2 * Math.random() - 1);
+          const spd = 2.5 + Math.random() * 5;
+          const col = Math.random() < 0.25 ? c2 : c;
+          particles.current.push({
+            x: bx,
+            y: by,
+            z: bz,
+            vx: Math.sin(ph) * Math.cos(th) * spd,
+            vy: Math.cos(ph) * spd * 0.7 + 1.5,
+            vz: Math.sin(ph) * Math.sin(th) * spd,
+            age: 0,
+            life: 1.0 + Math.random() * 1.2,
+            r: col.r,
+            g: col.g,
+            b: col.b,
+          });
+        }
+        // golden trail streaks
+        for (let i = 0; i < 20; i++) {
+          const gc = new THREE.Color(0xffd700);
+          const th = Math.random() * Math.PI * 2;
+          const spd = 6 + Math.random() * 4;
+          particles.current.push({
+            x: bx,
+            y: by,
+            z: bz,
+            vx: Math.cos(th) * spd,
+            vy: (Math.random() - 0.3) * 3,
+            vz: Math.sin(th) * spd,
+            age: 0,
+            life: 0.5 + Math.random() * 0.5,
+            r: gc.r,
+            g: gc.g,
+            b: gc.b,
+          });
+        }
+        nextBurst.current = 0.25 + Math.random() * 0.35;
+      }
+    }
+
+    const pos = posArr.current;
+    const col = colArr.current;
+    const alive: FWParticle[] = [];
+    let n = 0;
+
+    for (const p of particles.current) {
+      p.age += dt;
+      if (p.age >= p.life) continue;
+      p.vy -= 5 * dt;
+      p.vx *= 1 - 1.2 * dt;
+      p.vz *= 1 - 1.2 * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.z += p.vz * dt;
+      const fade = Math.pow(1 - p.age / p.life, 1.5);
+      if (n < FW_MAX) {
+        const i = n * 3;
+        pos[i] = p.x;
+        pos[i + 1] = p.y;
+        pos[i + 2] = p.z;
+        col[i] = p.r * fade;
+        col[i + 1] = p.g * fade;
+        col[i + 2] = p.b * fade;
+        n++;
+      }
+      alive.push(p);
+    }
+    particles.current = alive;
+
+    if (geoRef.current) {
+      geoRef.current.setDrawRange(0, n);
+      (geoRef.current.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+      (geoRef.current.attributes.color as THREE.BufferAttribute).needsUpdate = true;
     }
   });
 
@@ -350,9 +615,13 @@ function FloatingCandles({ candleColor }: { candleColor: number }) {
 function GameLogic({
   house,
   controlsRef,
+  aiColor,
+  difficulty,
 }: {
   house: HouseName;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
+  aiColor: 'w' | 'b' | null;
+  difficulty: Difficulty;
 }) {
   const theme = HOUSE_THEMES[house];
   const { scene, camera, gl } = useThree();
@@ -374,7 +643,10 @@ function GameLogic({
   const selectedSquare = useRef<Square | null>(null);
   const legalTargets = useRef<Square[]>([]);
   const animInProgress = useRef(false);
+  const aiTurnActive = useRef(false);
   const soundsRef = useRef<{ move: Howl; check: Howl } | null>(null);
+
+  const { requestMove, ready: engineReady } = useStockfish(aiColor !== null);
   // Tracks the piece currently in motion + elapsed time for procedural animation
   const movingPiece = useRef<PieceObject | null>(null);
   const moveAnimTime = useRef(0);
@@ -739,6 +1011,20 @@ function GameLogic({
     });
   }, []);
 
+  // ── Game-over detection ────────────────────────────────────────────────────
+
+  const detectGameOver = useCallback(() => {
+    const chess = chessRef.current;
+    if (!chess.isGameOver()) return;
+    let result: NonNullable<GameResult>;
+    if (chess.isCheckmate()) {
+      result = { winner: chess.turn() === 'w' ? 'b' : 'w', reason: 'checkmate' };
+    } else {
+      result = { winner: null, reason: chess.isStalemate() ? 'stalemate' : 'draw' };
+    }
+    useGameStore.getState().setGameResult(result);
+  }, []);
+
   // ── Move execution ─────────────────────────────────────────────────────────
 
   const executeMove = useCallback(
@@ -833,12 +1119,16 @@ function GameLogic({
             animateCastlingRook(rookFromSq, rookToSq)
               .then(() => {
                 animInProgress.current = false;
+                detectGameOver();
+                useGameStore.getState().setCurrentTurn(chessRef.current.turn());
               })
               .catch(() => {
                 animInProgress.current = false;
               });
           } else {
             animInProgress.current = false;
+            detectGameOver();
+            useGameStore.getState().setCurrentTurn(chessRef.current.turn());
           }
         },
       });
@@ -891,6 +1181,63 @@ function GameLogic({
     [animateCastlingRook, captureCamera, cameraShake, playCaptureAnimation, reconcilePieces],
   );
 
+  // ── AI move trigger ────────────────────────────────────────────────────────
+
+  const triggerAiMove = useCallback(async () => {
+    if (!engineReady) return;
+    aiTurnActive.current = true;
+
+    // Wait for human animation to finish (and chess.js state to be updated by executeMove)
+    await new Promise<void>((resolve) => {
+      const check = () => {
+        if (animInProgress.current) {
+          setTimeout(check, 50);
+          return;
+        }
+        resolve();
+      };
+      check();
+    });
+
+    if (
+      chessRef.current.isGameOver() ||
+      (aiColor !== null && chessRef.current.turn() !== aiColor)
+    ) {
+      aiTurnActive.current = false;
+      return;
+    }
+
+    const uciMove = await requestMove(chessRef.current.fen(), difficulty);
+    if (!uciMove) {
+      aiTurnActive.current = false;
+      return;
+    }
+
+    const fromSq = uciMove.slice(0, 2) as Square;
+    const toSq = uciMove.slice(2, 4) as Square;
+    const mesh = pieceMeshes.current.get(fromSq);
+    if (!mesh) {
+      aiTurnActive.current = false;
+      return;
+    }
+
+    animInProgress.current = true;
+    aiTurnActive.current = false;
+    executeMove(fromSq, toSq, mesh).catch(() => {
+      animInProgress.current = false;
+    });
+  }, [aiColor, engineReady, requestMove, difficulty, executeMove]);
+
+  // When AI plays white it must move first; fire after engine is ready and pieces loaded
+  useEffect(() => {
+    if (aiColor === 'w' && engineReady && modelsVersion > 0) {
+      const t = setTimeout(() => {
+        triggerAiMove();
+      }, 800);
+      return () => clearTimeout(t);
+    }
+  }, [aiColor, engineReady, modelsVersion, triggerAiMove]);
+
   // ── Pointer interaction ────────────────────────────────────────────────────
 
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
@@ -928,7 +1275,7 @@ function GameLogic({
 
   const onPointerDown = useCallback(
     (e: PointerEvent) => {
-      if (animInProgress.current) return;
+      if (animInProgress.current || aiTurnActive.current) return;
 
       const sq = getClickedSquare(e);
 
@@ -952,11 +1299,16 @@ function GameLogic({
         executeMove(fromSq, sq, movingMesh).catch(() => {
           animInProgress.current = false;
         });
+        if (aiColor !== null) triggerAiMove();
         return;
       }
 
       const piece = chessRef.current.get(sq);
-      if (piece?.color === chessRef.current.turn()) {
+      // In AI mode: restrict human to their color only when engine is ready.
+      // If engine hasn't loaded, allow both colors so the game is never stuck.
+      const humanColor: 'w' | 'b' =
+        aiColor === null || !engineReady ? chessRef.current.turn() : aiColor === 'w' ? 'b' : 'w';
+      if (piece && piece.color === chessRef.current.turn() && piece.color === humanColor) {
         clearHighlights();
         selectedSquare.current = sq;
         highlightSelected(sq);
@@ -988,12 +1340,15 @@ function GameLogic({
       }
     },
     [
+      aiColor,
       camera,
       clearHighlights,
+      engineReady,
       executeMove,
       getClickedSquare,
       highlightLegalMoves,
       highlightSelected,
+      triggerAiMove,
     ],
   );
 
@@ -1066,6 +1421,242 @@ function GameLogic({
   );
 }
 
+// ── Victory overlay ───────────────────────────────────────────────────────────
+
+function VictoryOverlay({
+  result,
+  theme,
+  gameMode,
+  aiColor,
+  onPlayAgain,
+  onMainMenu,
+}: {
+  result: NonNullable<GameResult>;
+  theme: (typeof HOUSE_THEMES)[HouseName];
+  gameMode: string | null;
+  aiColor: 'w' | 'b';
+  onPlayAgain: () => void;
+  onMainMenu: () => void;
+}) {
+  const accent = theme.accentColor ?? '#ffd700';
+  const isCheckmate = result.reason === 'checkmate';
+
+  let headline = 'DRAW';
+  let subline =
+    result.reason === 'stalemate' ? 'Stalemate — Honour to Both!' : 'The Board Is Balanced';
+  let winnerGlow = accent;
+
+  if (isCheckmate) {
+    if (gameMode === 'ai') {
+      const humanWon = result.winner !== aiColor;
+      headline = humanWon ? 'VICTORY!' : 'DEFEATED!';
+      subline = humanWon ? 'You have bested the Dark Wizard!' : 'The Dark Wizard reigns supreme.';
+      winnerGlow = humanWon ? '#ffd700' : '#cc3333';
+    } else {
+      headline = result.winner === 'w' ? 'WHITE WINS!' : 'BLACK WINS!';
+      subline = 'Checkmate — the king falls!';
+    }
+  }
+
+  // Lazy-init random positions once on mount; colour derives from accent prop
+  const [sparkBase] = useState(() =>
+    Array.from({ length: 24 }, () => ({
+      dx: `${((Math.random() - 0.5) * 600) | 0}px`,
+      dy: `${((Math.random() - 0.5) * 400) | 0}px`,
+      delay: (Math.random() * 1.5).toFixed(2),
+      left: `${(20 + Math.random() * 60).toFixed(1)}%`,
+      top: `${(20 + Math.random() * 60).toFixed(1)}%`,
+    })),
+  );
+  const sparks = sparkBase.map((s, i) => ({
+    ...s,
+    color: i % 3 === 0 ? accent : i % 3 === 1 ? '#ffffff' : '#ffd700',
+  }));
+
+  const [burstBase] = useState(() =>
+    Array.from({ length: 10 }, (_, i) => {
+      const angle = (i / 10) * 360;
+      const radius = 30 + Math.random() * 20;
+      return {
+        cx: 50 + Math.cos((angle * Math.PI) / 180) * radius,
+        cy: 50 + Math.sin((angle * Math.PI) / 180) * radius * 0.6,
+        delay: (i * 0.18).toFixed(2),
+        size: 80 + Math.floor(Math.random() * 80),
+        parity: i % 2,
+      };
+    }),
+  );
+  const bursts = burstBase.map((b) => ({ ...b, color: b.parity === 0 ? accent : '#ffffff' }));
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+        background: 'rgba(0,0,0,0.82)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        animation: 'vOverlayIn 0.5s ease forwards',
+        overflow: 'hidden',
+      }}
+    >
+      {/* CSS burst rings */}
+      {bursts.map((b, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            left: `${b.cx}%`,
+            top: `${b.cy}%`,
+            width: b.size,
+            height: b.size,
+            borderRadius: '50%',
+            border: `3px solid ${b.color}`,
+            transform: 'scale(0)',
+            opacity: 0,
+            animation: `fwBurst 1.2s ease-out ${b.delay}s infinite`,
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
+
+      {/* CSS star sparks */}
+      {sparks.map((sp, i) => (
+        <div
+          key={`s${i}`}
+          style={
+            {
+              position: 'absolute',
+              left: sp.left,
+              top: sp.top,
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: sp.color,
+              boxShadow: `0 0 6px ${sp.color}`,
+              '--dx': sp.dx,
+              '--dy': sp.dy,
+              animation: `fwStar 1.5s ease-out ${sp.delay}s infinite`,
+              pointerEvents: 'none',
+            } as React.CSSProperties
+          }
+        />
+      ))}
+
+      {/* Main card */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          background: `radial-gradient(ellipse at center, #1a1220 0%, #080610 100%)`,
+          border: `2px solid ${winnerGlow}`,
+          borderRadius: '20px',
+          padding: '48px 64px',
+          textAlign: 'center',
+          fontFamily: '"Georgia","Times New Roman",serif',
+          color: '#e8d5a3',
+          maxWidth: '480px',
+          width: '90vw',
+          boxShadow: `0 0 60px ${winnerGlow}66, 0 0 120px ${winnerGlow}33, inset 0 0 40px rgba(0,0,0,0.6)`,
+          animation: 'vCardIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both',
+        }}
+      >
+        {/* Trophy */}
+        <div
+          style={{
+            fontSize: '72px',
+            lineHeight: 1,
+            marginBottom: '12px',
+            animation: isCheckmate
+              ? 'vTrophyBounce 1.4s ease-in-out 0.8s infinite'
+              : 'vFloat 3s ease-in-out infinite',
+          }}
+        >
+          {isCheckmate
+            ? result.winner !== null && (gameMode === 'ai' ? result.winner !== aiColor : true)
+              ? '🏆'
+              : '💀'
+            : '🤝'}
+        </div>
+
+        {/* Main headline */}
+        <h1
+          style={{
+            fontSize: 'clamp(28px, 5vw, 52px)',
+            fontWeight: 'bold',
+            margin: '0 0 8px',
+            color: winnerGlow,
+            letterSpacing: '4px',
+            animation: 'vTitleGlow 2s ease-in-out 0.6s infinite',
+          }}
+        >
+          {headline}
+        </h1>
+
+        {/* Sub line */}
+        <p
+          style={{
+            fontSize: '16px',
+            color: '#c8b080',
+            margin: '0 0 8px',
+            letterSpacing: '1px',
+            fontStyle: 'italic',
+          }}
+        >
+          {subline}
+        </p>
+
+        {isCheckmate && (
+          <p style={{ fontSize: '13px', color: '#888', margin: '0 0 32px', letterSpacing: '2px' }}>
+            ✦ CHECKMATE ✦
+          </p>
+        )}
+        {!isCheckmate && <div style={{ marginBottom: '32px' }} />}
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={onPlayAgain}
+            style={{
+              padding: '12px 32px',
+              borderRadius: '28px',
+              border: `2px solid ${accent}`,
+              background: `linear-gradient(135deg, ${accent}33, ${accent}11)`,
+              color: accent,
+              fontFamily: '"Georgia","Times New Roman",serif',
+              fontSize: '15px',
+              fontWeight: 'bold',
+              letterSpacing: '2px',
+              cursor: 'pointer',
+              animation: `vBtnPulse 2s ease-in-out 1s infinite`,
+            }}
+          >
+            ⚡ Play Again
+          </button>
+          <button
+            onClick={onMainMenu}
+            style={{
+              padding: '12px 32px',
+              borderRadius: '28px',
+              border: '1px solid #555',
+              background: 'transparent',
+              color: '#aaa',
+              fontFamily: '"Georgia","Times New Roman",serif',
+              fontSize: '15px',
+              letterSpacing: '2px',
+              cursor: 'pointer',
+            }}
+          >
+            ← Main Menu
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // SceneBackground is rendered as a CSS layer behind the Canvas — see ChessScene JSX.
 
 // ── Post-processing ──────────────────────────────────────────────────────────
@@ -1090,104 +1681,632 @@ function PostFX() {
   );
 }
 
+// ── Scene mood: subtle fog + extra magical sparkles ───────────────────────────
+
+function SceneMood() {
+  const { scene } = useThree();
+  useEffect(() => {
+    const prev = scene.fog;
+    // eslint-disable-next-line react-hooks/immutability
+    scene.fog = new THREE.Fog(0x080520, 20, 42);
+
+    return () => {
+      scene.fog = prev;
+    };
+  }, [scene]);
+  return (
+    <>
+      {/* Purple motes drifting at board level */}
+      <Sparkles
+        count={35}
+        scale={8}
+        size={0.9}
+        speed={0.04}
+        opacity={0.14}
+        color={0x9955ff}
+        position={[0, 1.2, 0]}
+      />
+      {/* Blue macro wisps high above */}
+      <Sparkles
+        count={18}
+        scale={14}
+        size={1.4}
+        speed={0.025}
+        opacity={0.07}
+        color={0x3366cc}
+        position={[0, 3.5, 0]}
+      />
+    </>
+  );
+}
+
+// ── Game HUD — top-right overlay ──────────────────────────────────────────────
+
+function GameHUD() {
+  const gameMode = useGameStore((s) => s.gameMode);
+  const aiColor = useGameStore((s) => s.aiColor);
+  const currentTurn = useGameStore((s) => s.currentTurn);
+  const gameResult = useGameStore((s) => s.gameResult);
+
+  const [totalSecs, setTotalSecs] = useState(0);
+  const [moveSecs, setMoveSecs] = useState(0);
+
+  const gameStartRef = useRef<number>(0);
+  const moveStartRef = useRef<number>(0);
+  useEffect(() => {
+    gameStartRef.current = Date.now();
+    moveStartRef.current = Date.now();
+  }, []);
+  const prevTurnRef = useRef<'w' | 'b'>('w');
+
+  // Reset move timer on each turn change
+  useEffect(() => {
+    if (prevTurnRef.current !== currentTurn) {
+      moveStartRef.current = Date.now();
+      prevTurnRef.current = currentTurn;
+    }
+  }, [currentTurn]);
+
+  // Stop clocks when game is over
+  useEffect(() => {
+    if (gameResult) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setTotalSecs(Math.floor((now - gameStartRef.current) / 1000));
+      setMoveSecs(Math.floor((now - moveStartRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [gameResult]);
+
+  const fmt = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+  const isWhite = currentTurn === 'w';
+  const isAiTurn = gameMode === 'ai' && currentTurn === aiColor;
+
+  const turnLabel =
+    gameMode === 'ai'
+      ? isAiTurn
+        ? '⚙ AI Thinking…'
+        : '⚔ Your Turn'
+      : isWhite
+        ? '⬜ White to Move'
+        : '⬛ Black to Move';
+
+  const turnColor = isWhite ? '#fff8c0' : '#b0b8e0';
+  const turnShadow = isWhite ? '0 0 10px rgba(255,230,80,0.7)' : '0 0 10px rgba(100,120,220,0.5)';
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: '16px',
+        right: '16px',
+        zIndex: 10,
+        background: 'rgba(4,2,14,0.82)',
+        border: '1px solid rgba(180,140,50,0.35)',
+        borderRadius: '10px',
+        padding: '12px 18px',
+        fontFamily: '"Georgia","Times New Roman",serif',
+        color: '#e8d5a3',
+        backdropFilter: 'blur(10px)',
+        minWidth: '158px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.55)',
+        userSelect: 'none',
+      }}
+    >
+      {/* Turn indicator */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '7px',
+          marginBottom: '10px',
+          paddingBottom: '8px',
+          borderBottom: '1px solid rgba(180,140,50,0.2)',
+        }}
+      >
+        <div
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            background: isWhite ? '#ffe080' : '#7788cc',
+            boxShadow: isWhite ? '0 0 6px #ffe080' : '0 0 6px #7788cc',
+            flexShrink: 0,
+          }}
+        />
+        <span
+          style={{
+            fontSize: '13px',
+            fontWeight: 'bold',
+            letterSpacing: '0.8px',
+            color: turnColor,
+            textShadow: turnShadow,
+          }}
+        >
+          {turnLabel}
+        </span>
+      </div>
+
+      {/* Timers */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 14px' }}>
+        <div>
+          <div
+            style={{
+              fontSize: '9px',
+              letterSpacing: '1.2px',
+              color: '#a08040',
+              marginBottom: '1px',
+            }}
+          >
+            TOTAL
+          </div>
+          <div
+            style={{ fontFamily: 'monospace', fontSize: '17px', color: '#d8c090', lineHeight: 1 }}
+          >
+            {fmt(totalSecs)}
+          </div>
+        </div>
+        <div>
+          <div
+            style={{
+              fontSize: '9px',
+              letterSpacing: '1.2px',
+              color: '#a08040',
+              marginBottom: '1px',
+            }}
+          >
+            MOVE
+          </div>
+          <div
+            style={{ fontFamily: 'monospace', fontSize: '17px', color: '#ffd060', lineHeight: 1 }}
+          >
+            {fmt(moveSecs)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Root export ───────────────────────────────────────────────────────────────
 
 export default function ChessScene() {
   const house = useHouseStore((s) => s.selectedHouse) ?? 'gryffindor';
+  const resetHouse = useHouseStore((s) => s.resetHouse);
   const theme = HOUSE_THEMES[house as HouseName];
+  const {
+    gameMode,
+    aiColor: aiColorSetting,
+    difficulty,
+    gameResult,
+    setGameResult,
+    setMode,
+  } = useGameStore();
+  const resolvedAiColor = gameMode === 'ai' ? aiColorSetting : null;
+  const [showExitDialog, setShowExitDialog] = useState(false);
+
+  // Firework colors: house primary + accent + gold
+  const fwColors = [
+    theme.captureParticleColor,
+    parseInt((theme.accentColor ?? '#ffd700').replace('#', ''), 16),
+    0xffd700,
+    0xffffff,
+  ];
+
+  const handlePlayAgain = () => {
+    setGameResult(null);
+    setMode(null); // return to mode selection, same house
+  };
 
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
   return (
-    <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
-      {/* Background image — rendered as a CSS layer so it bypasses Three.js
+    <Fragment>
+      <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
+        {/* Background image — rendered as a CSS layer so it bypasses Three.js
           tone mapping and post-processing, preserving full sharpness and colour */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `url(${hogwartsBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          zIndex: 0,
-        }}
-      />
-      <Canvas
-        style={{ position: 'relative', zIndex: 1 }}
-        shadows
-        camera={{ position: [0, 12, 10], fov: 45 }}
-        gl={{
-          antialias: true,
-          alpha: true,
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 0.65,
-        }}
-        dpr={[1, 2]}
-        performance={{ min: 0.5 }}
-      >
-        {/* Lighting — intentionally dim; candles provide most of the fill */}
-        <ambientLight intensity={0.18} color={0xfff0d0} />
-        <directionalLight
-          position={[6, 14, 8]}
-          intensity={1.2}
-          castShadow
-          shadow-mapSize={[2048, 2048]}
-          shadow-camera-far={50}
-          shadow-camera-left={-10}
-          shadow-camera-right={10}
-          shadow-camera-top={10}
-          shadow-camera-bottom={-10}
-          shadow-bias={-0.001}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${hogwartsBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            zIndex: 0,
+          }}
         />
-        <directionalLight position={[-5, 6, -8]} intensity={0.4} color={0xaabbff} />
+        <Canvas
+          style={{ position: 'relative', zIndex: 1 }}
+          shadows
+          camera={{ position: [0, 12, 10], fov: 45 }}
+          gl={{
+            antialias: true,
+            alpha: true,
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 0.65,
+          }}
+          dpr={[1, 2]}
+          performance={{ min: 0.5 }}
+        >
+          {/* Lighting — intentionally dim; candles provide most of the fill */}
+          <ambientLight intensity={0.18} color={0xfff0d0} />
+          <directionalLight
+            position={[6, 14, 8]}
+            intensity={1.2}
+            castShadow
+            shadow-mapSize={[2048, 2048]}
+            shadow-camera-far={50}
+            shadow-camera-left={-10}
+            shadow-camera-right={10}
+            shadow-camera-top={10}
+            shadow-camera-bottom={-10}
+            shadow-bias={-0.001}
+          />
+          <directionalLight position={[-5, 6, -8]} intensity={0.4} color={0xaabbff} />
 
-        {/* HDRI — apartment preset is dark, good for candlelit mood */}
-        <Environment preset="apartment" background={false} />
+          {/* HDRI — apartment preset is dark, good for candlelit mood */}
+          <Environment preset="apartment" background={false} />
 
-        {/* Ambient magic sparkles above board */}
-        <Sparkles
-          count={50}
-          scale={9}
-          size={0.6}
-          speed={0.2}
-          opacity={0.18}
-          color={theme.candleColor}
-          position={[0, 3.5, 0]}
+          {/* Ambient magic sparkles above board */}
+          <Sparkles
+            count={50}
+            scale={9}
+            size={0.6}
+            speed={0.2}
+            opacity={0.18}
+            color={theme.candleColor}
+            position={[0, 3.5, 0]}
+          />
+
+          {/* Scene mood: fog + extra sparkles */}
+          <SceneMood />
+
+          {/* Floating candles */}
+          <FloatingCandles candleColor={theme.candleColor} />
+
+          {/* Contact shadows — tight scale to avoid the ring artifact */}
+          <ContactShadows
+            position={[0, 0.02, 0]}
+            opacity={0.4}
+            scale={10}
+            blur={1.5}
+            far={6}
+            color="#000000"
+            frames={1}
+          />
+
+          {/* All game logic + board + pieces */}
+          <GameLogic
+            house={house as HouseName}
+            controlsRef={controlsRef}
+            aiColor={resolvedAiColor}
+            difficulty={difficulty}
+          />
+
+          {/* Wizard fireworks — active when game is over */}
+          <WizardFireworks active={gameResult !== null} colors={fwColors} />
+
+          {/* Camera controls */}
+          <OrbitControls
+            ref={controlsRef}
+            enablePan={false}
+            minPolarAngle={Math.PI / 6}
+            maxPolarAngle={Math.PI / 2.2}
+            minDistance={8}
+            maxDistance={22}
+            enableDamping
+            dampingFactor={0.05}
+            target={[0, 0, 0]}
+          />
+
+          {/* Post-processing */}
+          <PostFX />
+        </Canvas>
+
+        {/* Game HUD — top right */}
+        <GameHUD />
+
+        {/* Exit button */}
+        <button
+          onClick={() => setShowExitDialog(true)}
+          style={{
+            position: 'absolute',
+            top: '16px',
+            left: '16px',
+            zIndex: 10,
+            background: 'rgba(10,5,20,0.75)',
+            border: '1px solid rgba(200,160,60,0.5)',
+            borderRadius: '8px',
+            color: '#e8d5a3',
+            fontFamily: '"Georgia","Times New Roman",serif',
+            fontSize: '13px',
+            padding: '8px 14px',
+            cursor: 'pointer',
+            letterSpacing: '1px',
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(200,160,60,0.9)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(200,160,60,0.5)';
+          }}
+        >
+          ← Exit
+        </button>
+      </div>
+
+      {/* Exit confirmation dialog */}
+      {showExitDialog && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            animation: 'vOverlayIn 0.25s ease both',
+          }}
+        >
+          {/* Card */}
+          <div
+            style={{
+              position: 'relative',
+              background:
+                'radial-gradient(ellipse at 50% 20%, #201428 0%, #0e0818 55%, #07050f 100%)',
+              border: `2px solid ${theme.accentColor ?? '#c8a03c'}`,
+              borderRadius: '22px',
+              padding: '36px 48px 40px',
+              textAlign: 'center',
+              fontFamily: '"Georgia","Times New Roman",serif',
+              color: '#e8d5a3',
+              maxWidth: '420px',
+              width: '90vw',
+              boxShadow: `0 0 60px ${theme.accentColor ?? '#c8a03c'}55, 0 0 120px ${theme.accentColor ?? '#c8a03c'}22, inset 0 0 50px rgba(0,0,0,0.5)`,
+              animation: 'vDialogIn 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.05s both',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Top decorative beam */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                marginBottom: '22px',
+                animation: 'vBeamIn .4s ease .15s both',
+              }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  height: '1px',
+                  background: `linear-gradient(to right, transparent, ${theme.accentColor ?? '#c8a03c'}66)`,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: `${theme.accentColor ?? '#c8a03c'}99`,
+                  letterSpacing: '4px',
+                }}
+              >
+                ✦ ✦ ✦
+              </span>
+              <div
+                style={{
+                  flex: 1,
+                  height: '1px',
+                  background: `linear-gradient(to left, transparent, ${theme.accentColor ?? '#c8a03c'}66)`,
+                }}
+              />
+            </div>
+
+            {/* Orbiting warning icon */}
+            <div
+              style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 18px' }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '-8px',
+                  borderRadius: '50%',
+                  border: `1px dashed ${theme.accentColor ?? '#c8a03c'}55`,
+                  animation: 'vDialogRing 8s linear infinite',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '-2px',
+                  borderRadius: '50%',
+                  border: `1.5px solid ${theme.accentColor ?? '#c8a03c'}44`,
+                  borderTop: `1.5px solid ${theme.accentColor ?? '#c8a03c'}cc`,
+                  animation: 'vDialogRingRev 4s linear infinite',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '8px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(255,160,0,0.22) 0%, transparent 70%)',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '42px',
+                  lineHeight: 1,
+                  animation: 'vWarnPulse 2s ease-in-out infinite',
+                }}
+              >
+                ⚠
+              </div>
+            </div>
+
+            {/* Title */}
+            <h2
+              style={{
+                margin: '0 0 10px',
+                fontSize: '22px',
+                fontWeight: 'bold',
+                letterSpacing: '2px',
+                background: `linear-gradient(90deg, ${theme.accentColor ?? '#c8a03c'} 0%, #ffe077 50%, ${theme.accentColor ?? '#c8a03c'} 100%)`,
+                backgroundSize: '200% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                animation: 'vShimmerTitle 3s linear infinite',
+              }}
+            >
+              Abandon the Quest?
+            </h2>
+
+            {/* Body */}
+            <p
+              style={{
+                margin: '0 0 6px',
+                fontSize: '14px',
+                color: '#c8a878',
+                lineHeight: 1.65,
+                fontStyle: 'italic',
+              }}
+            >
+              Your battle shall be lost to the ages.
+            </p>
+            <p
+              style={{
+                margin: '0 0 22px',
+                fontSize: '12px',
+                color: '#7a6a50',
+                letterSpacing: '0.5px',
+              }}
+            >
+              Are you certain you wish to depart?
+            </p>
+
+            {/* Bottom decorative beam */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                marginBottom: '22px',
+                animation: 'vBeamIn .4s ease .25s both',
+              }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  height: '1px',
+                  background: `linear-gradient(to right, transparent, ${theme.accentColor ?? '#c8a03c'}44)`,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '10px',
+                  color: `${theme.accentColor ?? '#c8a03c'}66`,
+                  letterSpacing: '3px',
+                }}
+              >
+                ✦
+              </span>
+              <div
+                style={{
+                  flex: 1,
+                  height: '1px',
+                  background: `linear-gradient(to left, transparent, ${theme.accentColor ?? '#c8a03c'}44)`,
+                }}
+              />
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center' }}>
+              <button
+                onClick={resetHouse}
+                style={{
+                  padding: '13px 32px',
+                  borderRadius: '24px',
+                  border: `2px solid ${theme.accentColor ?? '#c8a03c'}`,
+                  background: `linear-gradient(135deg, ${theme.accentColor ?? '#c8a03c'}44, ${theme.accentColor ?? '#c8a03c'}22)`,
+                  color: theme.accentColor ?? '#c8a03c',
+                  fontFamily: '"Georgia","Times New Roman",serif',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  letterSpacing: '1.5px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: `0 0 18px ${theme.accentColor ?? '#c8a03c'}55`,
+                  transition: 'all .2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = theme.accentColor ?? '#c8a03c';
+                  e.currentTarget.style.color = '#0a0810';
+                  e.currentTarget.style.boxShadow = `0 0 28px ${theme.accentColor ?? '#c8a03c'}88`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = `linear-gradient(135deg, ${theme.accentColor ?? '#c8a03c'}33, ${theme.accentColor ?? '#c8a03c'}15)`;
+                  e.currentTarget.style.color = theme.accentColor ?? '#c8a03c';
+                  e.currentTarget.style.boxShadow = `0 0 14px ${theme.accentColor ?? '#c8a03c'}44`;
+                }}
+              >
+                Yes, Depart
+              </button>
+              <button
+                onClick={() => setShowExitDialog(false)}
+                style={{
+                  padding: '13px 32px',
+                  borderRadius: '24px',
+                  border: '1.5px solid rgba(255,255,255,0.35)',
+                  background: 'rgba(255,255,255,0.09)',
+                  color: '#d4c49a',
+                  fontFamily: '"Georgia","Times New Roman",serif',
+                  fontSize: '14px',
+                  letterSpacing: '1px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all .2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.45)';
+                  e.currentTarget.style.color = '#e8d5a3';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)';
+                  e.currentTarget.style.color = '#b8a880';
+                }}
+              >
+                Stay &amp; Fight
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Victory overlay */}
+      {gameResult && (
+        <VictoryOverlay
+          result={gameResult}
+          theme={theme}
+          gameMode={gameMode}
+          aiColor={aiColorSetting}
+          onPlayAgain={handlePlayAgain}
+          onMainMenu={resetHouse}
         />
-
-        {/* Floating candles */}
-        <FloatingCandles candleColor={theme.candleColor} />
-
-        {/* Contact shadows — tight scale to avoid the ring artifact */}
-        <ContactShadows
-          position={[0, 0.02, 0]}
-          opacity={0.4}
-          scale={10}
-          blur={1.5}
-          far={6}
-          color="#000000"
-          frames={1}
-        />
-
-        {/* All game logic + board + pieces */}
-        <GameLogic house={house as HouseName} controlsRef={controlsRef} />
-
-        {/* Camera controls */}
-        <OrbitControls
-          ref={controlsRef}
-          enablePan={false}
-          minPolarAngle={Math.PI / 6}
-          maxPolarAngle={Math.PI / 2.2}
-          minDistance={8}
-          maxDistance={22}
-          enableDamping
-          dampingFactor={0.05}
-          target={[0, 0, 0]}
-        />
-
-        {/* Post-processing */}
-        <PostFX />
-      </Canvas>
-    </div>
+      )}
+    </Fragment>
   );
 }

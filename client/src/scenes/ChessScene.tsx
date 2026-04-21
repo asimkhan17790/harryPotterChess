@@ -58,6 +58,15 @@ import { onModelsReady } from '../geometry/gltfPieceCache';
 import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
 
+// ── Google Font: Cinzel (fantasy serif for panel headers) ────────────────────
+if (typeof document !== 'undefined' && !document.getElementById('hp-cinzel-font')) {
+  const l = document.createElement('link');
+  l.id = 'hp-cinzel-font';
+  l.rel = 'stylesheet';
+  l.href = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap';
+  document.head.appendChild(l);
+}
+
 // ── Victory screen CSS injected once at module load ──────────────────────────
 if (typeof document !== 'undefined' && !document.getElementById('hp-victory-styles')) {
   const s = document.createElement('style');
@@ -632,6 +641,14 @@ function GameLogic({
     onModelsReady(() => setModelsVersion((v) => v + 1));
   }, []);
 
+  // Reset game history state when a new game mounts
+  useEffect(() => {
+    const store = useGameStore.getState();
+    store.setMoveHistory([]);
+    store.setCapturedByWhite([]);
+    store.setCapturedByBlack([]);
+  }, []);
+
   // Stable refs — never cause re-renders
   const chessRef = useRef(new Chess());
   const pieceMeshes = useRef(new Map<Square, PieceObject>());
@@ -1025,6 +1042,26 @@ function GameLogic({
     useGameStore.getState().setGameResult(result);
   }, []);
 
+  // ── Sync move history + captured pieces into store ────────────────────────
+
+  const syncGameHistory = useCallback(() => {
+    const chess = chessRef.current;
+    const san = chess.history();
+    const verbose = chess.history({ verbose: true });
+    const capW: string[] = [];
+    const capB: string[] = [];
+    for (const m of verbose) {
+      if (m.captured) {
+        if (m.color === 'w') capW.push(m.captured);
+        else capB.push(m.captured);
+      }
+    }
+    const store = useGameStore.getState();
+    store.setMoveHistory(san);
+    store.setCapturedByWhite(capW);
+    store.setCapturedByBlack(capB);
+  }, []);
+
   // ── Move execution ─────────────────────────────────────────────────────────
 
   const executeMove = useCallback(
@@ -1120,6 +1157,7 @@ function GameLogic({
               .then(() => {
                 animInProgress.current = false;
                 detectGameOver();
+                syncGameHistory();
                 useGameStore.getState().setCurrentTurn(chessRef.current.turn());
               })
               .catch(() => {
@@ -1128,6 +1166,7 @@ function GameLogic({
           } else {
             animInProgress.current = false;
             detectGameOver();
+            syncGameHistory();
             useGameStore.getState().setCurrentTurn(chessRef.current.turn());
           }
         },
@@ -1178,7 +1217,14 @@ function GameLogic({
           ease: 'elastic.out(1, 0.4)',
         });
     },
-    [animateCastlingRook, captureCamera, cameraShake, playCaptureAnimation, reconcilePieces],
+    [
+      animateCastlingRook,
+      captureCamera,
+      cameraShake,
+      playCaptureAnimation,
+      reconcilePieces,
+      syncGameHistory,
+    ],
   );
 
   // ── AI move trigger ────────────────────────────────────────────────────────
@@ -1720,6 +1766,217 @@ function SceneMood() {
   );
 }
 
+// ── Game Info Panel — captured pieces + move history ─────────────────────────
+
+const PIECE_GLYPHS: Record<string, string> = {
+  p: '♟',
+  n: '♞',
+  b: '♝',
+  r: '♜',
+  q: '♛',
+  k: '♚',
+};
+
+const CINZEL = '"Cinzel","Georgia","Times New Roman",serif';
+const GOLD = '#ffd060';
+const GOLD_DIM = '#c8962a';
+const DIVIDER = '1px solid rgba(200,150,40,0.28)';
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontFamily: CINZEL,
+        fontSize: '11px',
+        fontWeight: 700,
+        letterSpacing: '2.5px',
+        textTransform: 'uppercase',
+        color: GOLD,
+        textShadow: `0 0 10px ${GOLD}99, 0 0 20px ${GOLD}44`,
+        marginBottom: '8px',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function CaptureRow({ label, pieces, glow }: { label: string; pieces: string[]; glow: string }) {
+  const sorted = [...pieces].sort((a, b) => {
+    const order = { q: 0, r: 1, b: 2, n: 3, p: 4, k: 5 };
+    return (order[a as keyof typeof order] ?? 9) - (order[b as keyof typeof order] ?? 9);
+  });
+  return (
+    <div style={{ marginBottom: '10px' }}>
+      <div
+        style={{
+          fontFamily: CINZEL,
+          fontSize: '9px',
+          fontWeight: 600,
+          letterSpacing: '1.8px',
+          color: GOLD_DIM,
+          marginBottom: '4px',
+          textTransform: 'uppercase',
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', minHeight: '22px' }}>
+        {sorted.length === 0 ? (
+          <span
+            style={{
+              fontSize: '12px',
+              color: '#4a3820',
+              fontStyle: 'italic',
+              fontFamily: '"Georgia",serif',
+            }}
+          >
+            —
+          </span>
+        ) : (
+          sorted.map((p, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: '18px',
+                lineHeight: 1,
+                color: glow,
+                textShadow: `0 0 8px ${glow}cc`,
+                filter: `drop-shadow(0 0 3px ${glow}88)`,
+              }}
+            >
+              {PIECE_GLYPHS[p] ?? '?'}
+            </span>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function GameInfoPanel() {
+  const moveHistory = useGameStore((s) => s.moveHistory);
+  const capturedByWhite = useGameStore((s) => s.capturedByWhite);
+  const capturedByBlack = useGameStore((s) => s.capturedByBlack);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [moveHistory]);
+
+  const movePairs: Array<[string, string?]> = [];
+  for (let i = 0; i < moveHistory.length; i += 2) {
+    movePairs.push([moveHistory[i], moveHistory[i + 1]]);
+  }
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: '120px',
+        right: '16px',
+        zIndex: 10,
+        background: 'rgba(3,1,12,0.88)',
+        border: `1px solid rgba(200,150,40,0.45)`,
+        borderRadius: '10px',
+        padding: '14px 16px',
+        fontFamily: CINZEL,
+        color: '#f0dfa0',
+        backdropFilter: 'blur(14px)',
+        width: '192px',
+        boxShadow: '0 6px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,220,80,0.08)',
+        userSelect: 'none',
+      }}
+    >
+      {/* Captured */}
+      <div style={{ paddingBottom: '12px', marginBottom: '12px', borderBottom: DIVIDER }}>
+        <SectionHeader>Captured</SectionHeader>
+        <CaptureRow label="By White" pieces={capturedByWhite} glow="#88aaff" />
+        <CaptureRow label="By Black" pieces={capturedByBlack} glow="#ffd060" />
+      </div>
+
+      {/* Move history */}
+      <div>
+        <SectionHeader>Moves</SectionHeader>
+        <div
+          ref={scrollRef}
+          style={{
+            maxHeight: '240px',
+            overflowY: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: `${GOLD_DIM} transparent`,
+          }}
+        >
+          {movePairs.length === 0 ? (
+            <div
+              style={{
+                fontSize: '12px',
+                color: '#6a5030',
+                fontStyle: 'italic',
+                fontFamily: '"Georgia",serif',
+              }}
+            >
+              No moves yet
+            </div>
+          ) : (
+            movePairs.map(([white, black], idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '26px 1fr 1fr',
+                  alignItems: 'center',
+                  padding: '3px 4px',
+                  borderRadius: '4px',
+                  background: idx % 2 === 0 ? 'transparent' : 'rgba(255,200,80,0.05)',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontFamily: CINZEL,
+                    fontWeight: 600,
+                    color: GOLD_DIM,
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {idx + 1}.
+                </span>
+                <span
+                  style={{
+                    fontSize: '13px',
+                    fontFamily: '"Georgia","Times New Roman",serif',
+                    fontWeight: 'bold',
+                    color: '#ffe566',
+                    textShadow: '0 0 6px #ffd06066',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  {white}
+                </span>
+                <span
+                  style={{
+                    fontSize: '13px',
+                    fontFamily: '"Georgia","Times New Roman",serif',
+                    fontWeight: 'bold',
+                    color: '#aabfff',
+                    textShadow: '0 0 6px #6688ff44',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  {black ?? ''}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Game HUD — top-right overlay ──────────────────────────────────────────────
 
 function GameHUD() {
@@ -1767,7 +2024,7 @@ function GameHUD() {
   const turnLabel =
     gameMode === 'ai'
       ? isAiTurn
-        ? '⚙ AI Thinking…'
+        ? '🔮 Oracle…'
         : '⚔ Your Turn'
       : isWhite
         ? '⬜ White to Move'
@@ -1790,7 +2047,7 @@ function GameHUD() {
         fontFamily: '"Georgia","Times New Roman",serif',
         color: '#e8d5a3',
         backdropFilter: 'blur(10px)',
-        minWidth: '158px',
+        width: '192px',
         boxShadow: '0 4px 24px rgba(0,0,0,0.55)',
         userSelect: 'none',
       }}
@@ -2007,6 +2264,9 @@ export default function ChessScene() {
 
         {/* Game HUD — top right */}
         <GameHUD />
+
+        {/* Game Info Panel — captured pieces + move history */}
+        <GameInfoPanel />
 
         {/* Exit button */}
         <button

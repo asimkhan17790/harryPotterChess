@@ -165,7 +165,7 @@ export default function HouseSelection() {
             fontStyle: 'italic',
           }}
         >
-          Choose your house to begin
+          Choose your house to begin &nbsp;·&nbsp; No account needed
         </p>
 
         {/* Animated divider */}

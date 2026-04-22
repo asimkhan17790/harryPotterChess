@@ -17,6 +17,12 @@ venv/
 .env.*
 !.env.example
 
+# Local Claude skills — not for source control
+.claude/skills/
+
+# Local MCP config (may contain tokens/secrets)
+.mcp.json
+
 # Node
 node_modules/
 

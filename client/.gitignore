@@ -9,6 +9,11 @@ lerna-debug.log*
 
 node_modules
 dist
+
+# Environment secrets — never commit
+.env
+.env.*
+!.env.example
 dist-ssr
 *.local
 .vite

@@ -50,7 +50,14 @@ const DEFAULTS = {
 export const useGameStore = create<GameState>((set) => ({
   ...DEFAULTS,
   setMode: (gameMode) =>
-    set({ gameMode, gameStartedAt: gameMode ? Date.now() : null, moveCount: 0 }),
+    set({
+      gameMode,
+      gameStartedAt: gameMode ? Date.now() : null,
+      moveCount: 0,
+      moveHistory: [],
+      capturedByWhite: [],
+      capturedByBlack: [],
+    }),
   setMoveCount: (moveCount) => set({ moveCount }),
   setAiColor: (aiColor) => set({ aiColor }),
   setDifficulty: (difficulty) => set({ difficulty }),

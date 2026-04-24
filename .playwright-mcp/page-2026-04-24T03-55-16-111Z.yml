@@ -1,0 +1,28 @@
+- generic [ref=e3]:
+  - generic: ᚠ
+  - generic: ᚢ
+  - generic: ᚦ
+  - generic: ᚨ
+  - generic: ᚱ
+  - generic: ᚷ
+  - generic: ᚹ
+  - generic: ᚾ
+  - generic: ᛁ
+  - generic: ᛃ
+  - generic: ᛇ
+  - generic: ᛈ
+  - generic: ᚠ
+  - generic: ᚢ
+  - generic [ref=e4]:
+    - generic [ref=e5]: ♟
+    - generic [ref=e6]: ✦ Welcome to ✦
+    - heading "Wizard's Chess" [level=1] [ref=e7]
+    - paragraph [ref=e8]: The Sorcerer's Board
+    - generic [ref=e10]:
+      - button "SIGN IN WITH GOOGLE" [ref=e11] [cursor=pointer]
+      - generic [ref=e12]: — OR —
+      - button "PLAY AS GUEST" [ref=e13] [cursor=pointer]
+      - paragraph [ref=e14]:
+        - text: Sign in to save your stats,
+        - text: track wins, and build your legend.
+  - paragraph [ref=e15]: ✦ WIZARD'S CHESS ✦

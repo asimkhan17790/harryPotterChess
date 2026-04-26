@@ -17,6 +17,7 @@ interface GameState {
   moveHistory: string[];
   capturedByWhite: string[];
   capturedByBlack: string[];
+  checkKingSquare: string | null;
   setMode: (m: GameMode) => void;
   setAiColor: (c: 'w' | 'b') => void;
   setDifficulty: (d: Difficulty) => void;
@@ -25,6 +26,7 @@ interface GameState {
   setMoveHistory: (h: string[]) => void;
   setCapturedByWhite: (c: string[]) => void;
   setCapturedByBlack: (c: string[]) => void;
+  setCheckKingSquare: (sq: string | null) => void;
   reset: () => void;
 }
 
@@ -37,6 +39,7 @@ const DEFAULTS = {
   moveHistory: [] as string[],
   capturedByWhite: [] as string[],
   capturedByBlack: [] as string[],
+  checkKingSquare: null as string | null,
 };
 
 export const useGameStore = create<GameState>((set) => ({
@@ -49,5 +52,6 @@ export const useGameStore = create<GameState>((set) => ({
   setMoveHistory: (moveHistory) => set({ moveHistory }),
   setCapturedByWhite: (capturedByWhite) => set({ capturedByWhite }),
   setCapturedByBlack: (capturedByBlack) => set({ capturedByBlack }),
+  setCheckKingSquare: (checkKingSquare) => set({ checkKingSquare }),
   reset: () => set({ ...DEFAULTS }),
 }));

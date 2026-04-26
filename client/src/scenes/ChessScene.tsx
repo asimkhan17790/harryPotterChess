@@ -89,6 +89,7 @@ if (typeof document !== 'undefined' && !document.getElementById('hp-victory-styl
     @keyframes vShimmerTitle { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
     @keyframes vRuneDrift { 0%,100%{opacity:.12;transform:translateY(0) rotate(0deg)} 50%{opacity:.38;transform:translateY(-10px) rotate(6deg)} }
     @keyframes vBeamIn { from{opacity:0;transform:scaleX(0)} to{opacity:1;transform:scaleX(1)} }
+    @keyframes checkAlarm { 0%,100%{opacity:0.18} 50%{opacity:0.52} }
   `;
   document.head.appendChild(s);
 }
@@ -99,6 +100,24 @@ if (typeof document !== 'undefined' && !document.getElementById('hp-victory-styl
 // KnightChargeEffect (GSAP tweens).
 const sharedChromaticVec = new THREE.Vector2(0.0003, 0.0003);
 const sharedBloomProxy = { intensity: 0.2 };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function findKingSquare(
+  board: Array<Array<{ type: PieceSymbol; color: Color } | null>>,
+  color: Color,
+): Square | null {
+  for (let r = 0; r < 8; r++) {
+    for (let f = 0; f < 8; f++) {
+      const p = board[r][f];
+      if (p && p.type === 'k' && p.color === color) {
+        // chess.board() row 0 = rank 8, so rank index = 7 - r
+        return indicesToSquare(f, 7 - r);
+      }
+    }
+  }
+  return null;
+}
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -647,6 +666,7 @@ function GameLogic({
     store.setMoveHistory([]);
     store.setCapturedByWhite([]);
     store.setCapturedByBlack([]);
+    store.setCheckKingSquare(null);
   }, []);
 
   // Stable refs — never cause re-renders
@@ -671,6 +691,8 @@ function GameLogic({
   const bobSprings = useRef(new Map<Square, Spring>());
   // Per-piece rim-light uniforms — animated on select/deselect
   const rimUniformsMap = useRef(new Map<Square, RimUniforms>());
+  // Tracks king square currently in check — for tile pulse cleanup in useFrame
+  const checkKingSquareRef = useRef<Square | null>(null);
   // Tracks piece meshes that have been colour-tinted for highlights, so we can restore them.
   // We clone the material before tinting so shared material instances are not mutated globally.
   const tintedMeshes = useRef<{ mesh: THREE.Mesh; origMat: THREE.MeshStandardMaterial }[]>([]);
@@ -1117,7 +1139,13 @@ function GameLogic({
       reconcilePieces(toSq);
 
       if (!isCapture) soundsRef.current?.move.play();
-      if (chessRef.current.inCheck()) soundsRef.current?.check.play();
+      const chess = chessRef.current;
+      if (chess.inCheck()) {
+        soundsRef.current?.check.play();
+        useGameStore.getState().setCheckKingSquare(findKingSquare(chess.board(), chess.turn()));
+      } else {
+        useGameStore.getState().setCheckKingSquare(null);
+      }
 
       // Kill any in-flight tween on this piece before starting a new one
       gsap.killTweensOf(movingMesh.position);
@@ -1405,7 +1433,7 @@ function GameLogic({
 
   // ── RAF loop ───────────────────────────────────────────────────────────────
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     // ── Procedural move animation ─────────────────────────────────────────────
     if (animInProgress.current && movingPiece.current) {
       moveAnimTime.current += delta;
@@ -1455,6 +1483,31 @@ function GameLogic({
       if (activeEffects.current[i].isComplete) {
         activeEffects.current[i].dispose();
         activeEffects.current.splice(i, 1);
+      }
+    }
+
+    // ── Check alarm — pulse king tile red ────────────────────────────────────
+    const newCheckSq = useGameStore.getState().checkKingSquare as Square | null;
+
+    if (checkKingSquareRef.current && checkKingSquareRef.current !== newCheckSq) {
+      const oldMat = tileMats.current.get(checkKingSquareRef.current);
+      if (oldMat) {
+        oldMat.emissive.setRGB(0, 0, 0);
+        oldMat.emissiveIntensity = 0;
+        oldMat.color.setHex(
+          isLightSquare(checkKingSquareRef.current) ? theme.lightTile : theme.darkTile,
+        );
+      }
+    }
+    checkKingSquareRef.current = newCheckSq;
+
+    if (newCheckSq) {
+      const mat = tileMats.current.get(newCheckSq);
+      if (mat) {
+        const pulse = 0.5 + 0.5 * Math.abs(Math.sin(clock.getElapsedTime() * Math.PI * 3));
+        mat.emissive.setRGB(0.9, 0, 0);
+        mat.emissiveIntensity = 0.4 + pulse * 0.7;
+        mat.color.setRGB(0.45 + pulse * 0.25, 0.02, 0.02);
       }
     }
   });
@@ -1762,6 +1815,46 @@ function SceneMood() {
         color={0x3366cc}
         position={[0, 3.5, 0]}
       />
+    </>
+  );
+}
+
+// ── Check alarm — glowing ring at king base (no lights = no tonemapping blowout) ──
+
+function CheckAlarm() {
+  const checkKingSquare = useGameStore((s) => s.checkKingSquare);
+  const ringRef = useRef<THREE.Mesh>(null);
+  const ring2Ref = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    if (!ringRef.current || !ring2Ref.current) return;
+    const t = clock.getElapsedTime();
+    const pulse = 0.5 + 0.5 * Math.abs(Math.sin(t * Math.PI * 3));
+    const mat = ringRef.current.material as THREE.MeshBasicMaterial;
+    const mat2 = ring2Ref.current.material as THREE.MeshBasicMaterial;
+    mat.opacity = 0.55 + pulse * 0.45;
+    mat2.opacity = 0.3 + pulse * 0.35;
+    const s = 0.88 + pulse * 0.16;
+    ringRef.current.scale.setScalar(s);
+    ring2Ref.current.scale.setScalar(1.1 + pulse * 0.2);
+  });
+
+  if (!checkKingSquare) return null;
+
+  const [kx, kz] = squareToXZ(checkKingSquare as Square);
+
+  return (
+    <>
+      {/* Inner tight ring */}
+      <mesh ref={ringRef} position={[kx, 0.04, kz]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.46, 0.07, 8, 48]} />
+        <meshBasicMaterial color={0xff1100} transparent opacity={0.9} depthWrite={false} />
+      </mesh>
+      {/* Outer halo ring */}
+      <mesh ref={ring2Ref} position={[kx, 0.03, kz]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.58, 0.04, 8, 48]} />
+        <meshBasicMaterial color={0xff4400} transparent opacity={0.5} depthWrite={false} />
+      </mesh>
     </>
   );
 }
@@ -2140,7 +2233,9 @@ export default function ChessScene() {
     gameResult,
     setGameResult,
     setMode,
+    checkKingSquare,
   } = useGameStore();
+  const isInCheck = !!checkKingSquare;
   const resolvedAiColor = gameMode === 'ai' ? aiColorSetting : null;
   const [showExitDialog, setShowExitDialog] = useState(false);
 
@@ -2220,6 +2315,9 @@ export default function ChessScene() {
           {/* Scene mood: fog + extra sparkles */}
           <SceneMood />
 
+          {/* Check alarm — red spotlight on king */}
+          <CheckAlarm />
+
           {/* Floating candles */}
           <FloatingCandles candleColor={theme.candleColor} />
 
@@ -2261,6 +2359,21 @@ export default function ChessScene() {
           {/* Post-processing */}
           <PostFX />
         </Canvas>
+
+        {/* Check alarm — red vignette overlay */}
+        {isInCheck && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              pointerEvents: 'none',
+              background:
+                'radial-gradient(ellipse at center, transparent 35%, rgba(180,0,0,0.42) 100%)',
+              animation: 'checkAlarm 0.33s ease-in-out infinite alternate',
+            }}
+          />
+        )}
 
         {/* Game HUD — top right */}
         <GameHUD />

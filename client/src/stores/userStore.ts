@@ -53,12 +53,12 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   fetchProfile: async (userId: string) => {
     const { user } = get();
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
     if (data) {
       set({ profile: data as Profile });
     } else if (user) {
       // Trigger missed or user pre-existed — upsert from Google metadata
-      const { data: created } = await supabase
+      const { data: created, error: upsertError } = await supabase
         .from('profiles')
         .upsert({
           id: userId,
@@ -67,7 +67,10 @@ export const useUserStore = create<UserState>((set, get) => ({
         })
         .select()
         .single();
+      if (upsertError) console.error('[userStore] profile upsert failed:', upsertError);
       if (created) set({ profile: created as Profile });
+    } else {
+      if (error) console.error('[userStore] profile fetch failed:', error);
     }
     await get().fetchStats(userId);
   },

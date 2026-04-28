@@ -1,5 +1,3 @@
-import { useUserStore } from '../stores/userStore';
-
 if (typeof document !== 'undefined' && !document.getElementById('lp-styles')) {
   const s = document.createElement('style');
   s.id = 'lp-styles';
@@ -11,7 +9,6 @@ if (typeof document !== 'undefined' && !document.getElementById('lp-styles')) {
     @keyframes lpBtnBreathe{0%,100%{box-shadow:0 0 12px #ffd70088,0 0 24px #ffd70044}50%{box-shadow:0 0 28px #ffd700bb,0 0 56px #ffd70066}}
     @keyframes lpOrb{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.4}50%{transform:translate(-50%,-50%) scale(1.5);opacity:.75}}
     @keyframes lpRuneFloat{0%,100%{opacity:.15;transform:translateY(0) rotate(0deg)}50%{opacity:.4;transform:translateY(-14px) rotate(6deg)}}
-    @keyframes lpAvatarPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
   `;
   document.head.appendChild(s);
 }
@@ -37,15 +34,6 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onContinue }: LandingPageProps) {
-  const user = useUserStore((s) => s.user);
-  const profile = useUserStore((s) => s.profile);
-  const signInWithGoogle = useUserStore((s) => s.signInWithGoogle);
-  const signOut = useUserStore((s) => s.signOut);
-
-  const displayName = profile?.display_name || user?.user_metadata?.full_name || 'Wizard';
-  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
-  const initials = displayName.charAt(0).toUpperCase();
-
   return (
     <div
       style={{
@@ -201,196 +189,32 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
           }}
         />
 
-        {user ? (
-          /* ── Logged-in state ── */
-          <div
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}
-          >
-            {/* Avatar */}
-            <div
-              style={{
-                width: '72px',
-                height: '72px',
-                borderRadius: '50%',
-                border: '2px solid #ffd700',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#1a1030',
-                fontSize: '28px',
-                color: '#ffd700',
-                boxShadow: '0 0 20px #ffd70055',
-                animation: 'lpAvatarPop .5s cubic-bezier(.34,1.56,.64,1) both',
-              }}
-            >
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={displayName}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                initials
-              )}
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: '#666',
-                  letterSpacing: '3px',
-                  marginBottom: '4px',
-                }}
-              >
-                SIGNED IN AS
-              </div>
-              <div style={{ fontSize: '18px', color: '#e8d5a3', letterSpacing: '1px' }}>
-                {displayName}
-              </div>
-            </div>
-
-            {/* Continue button */}
-            <div
-              onClick={onContinue}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') onContinue();
-              }}
-              style={{
-                cursor: 'pointer',
-                padding: '14px 52px',
-                borderRadius: '30px',
-                border: '1.5px solid #ffd700',
-                background: 'linear-gradient(90deg, #b8860b, #ffd700, #ffe066, #ffd700, #b8860b)',
-                backgroundSize: '200% 100%',
-                color: '#0a0810',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                letterSpacing: '4px',
-                fontFamily: '"Georgia","Times New Roman",serif',
-                animation:
-                  'lpGoldShimmer 2s linear infinite, lpBtnBreathe 2.5s ease-in-out infinite',
-                userSelect: 'none',
-              }}
-            >
-              ENTER THE ARENA
-            </div>
-
-            <button
-              onClick={signOut}
-              style={{
-                cursor: 'pointer',
-                background: 'none',
-                border: 'none',
-                color: '#444',
-                fontSize: '12px',
-                letterSpacing: '2px',
-                fontFamily: '"Georgia","Times New Roman",serif',
-                textDecoration: 'underline',
-                padding: '4px 8px',
-              }}
-            >
-              Sign Out
-            </button>
-          </div>
-        ) : (
-          /* ── Logged-out state ── */
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '16px',
-              width: '100%',
-              maxWidth: '320px',
-            }}
-          >
-            {/* Google sign-in */}
-            <div
-              onClick={signInWithGoogle}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') signInWithGoogle();
-              }}
-              style={{
-                cursor: 'pointer',
-                width: '100%',
-                padding: '14px 32px',
-                borderRadius: '30px',
-                border: '1.5px solid #ffd700',
-                background: 'linear-gradient(90deg, #b8860b, #ffd700, #ffe066, #ffd700, #b8860b)',
-                backgroundSize: '200% 100%',
-                color: '#0a0810',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                letterSpacing: '3px',
-                fontFamily: '"Georgia","Times New Roman",serif',
-                textAlign: 'center',
-                animation:
-                  'lpGoldShimmer 2s linear infinite, lpBtnBreathe 2.5s ease-in-out infinite',
-                userSelect: 'none',
-              }}
-            >
-              SIGN IN WITH GOOGLE
-            </div>
-
-            <div style={{ fontSize: '11px', color: '#444', letterSpacing: '3px' }}>— OR —</div>
-
-            {/* Guest play */}
-            <div
-              onClick={onContinue}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') onContinue();
-              }}
-              style={{
-                cursor: 'pointer',
-                width: '100%',
-                padding: '13px 32px',
-                borderRadius: '30px',
-                border: '1.5px solid #3a3228',
-                background: 'rgba(255,255,255,0.04)',
-                color: '#a08848',
-                fontSize: '13px',
-                letterSpacing: '3px',
-                fontFamily: '"Georgia","Times New Roman",serif',
-                textAlign: 'center',
-                userSelect: 'none',
-                transition: 'border-color .2s, color .2s',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = '#ffd70066';
-                (e.currentTarget as HTMLDivElement).style.color = '#e8d5a3';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = '#3a3228';
-                (e.currentTarget as HTMLDivElement).style.color = '#a08848';
-              }}
-            >
-              PLAY AS GUEST
-            </div>
-
-            <p
-              style={{
-                fontSize: '11px',
-                color: '#333',
-                letterSpacing: '1px',
-                textAlign: 'center',
-                margin: '8px 0 0',
-                lineHeight: 1.6,
-              }}
-            >
-              Sign in to save your stats,
-              <br />
-              track wins, and build your legend.
-            </p>
-          </div>
-        )}
+        {/* Enter button */}
+        <div
+          onClick={onContinue}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') onContinue();
+          }}
+          style={{
+            cursor: 'pointer',
+            padding: '14px 52px',
+            borderRadius: '30px',
+            border: '1.5px solid #ffd700',
+            background: 'linear-gradient(90deg, #b8860b, #ffd700, #ffe066, #ffd700, #b8860b)',
+            backgroundSize: '200% 100%',
+            color: '#0a0810',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            letterSpacing: '4px',
+            fontFamily: '"Georgia","Times New Roman",serif',
+            animation: 'lpGoldShimmer 2s linear infinite, lpBtnBreathe 2.5s ease-in-out infinite',
+            userSelect: 'none',
+          }}
+        >
+          ENTER THE ARENA
+        </div>
       </div>
 
       <p

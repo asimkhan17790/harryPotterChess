@@ -16,10 +16,6 @@ export const useHouseStore = create<HouseState>((set) => ({
   selectHouse: (house) => {
     useGameStore.getState().reset();
     set({ selectedHouse: house, theme: HOUSE_THEMES[house] });
-    // Lazy import to avoid circular dep at module load time
-    import('./userStore').then(({ useUserStore }) => {
-      useUserStore.getState().syncHouseToProfile(house);
-    });
   },
   resetHouse: () => {
     useGameStore.getState().reset();

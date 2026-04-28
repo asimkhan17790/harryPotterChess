@@ -45,7 +45,6 @@ import { Howl } from 'howler';
 import { squareToXZ, indicesToSquare, isLightSquare } from '../utils/chessCoords';
 import { useHouseStore } from '../stores/houseStore';
 import { useGameStore } from '../stores/gameStore';
-import { useUserStore } from '../stores/userStore';
 import type { GameResult } from '../stores/gameStore';
 import { useStockfish } from '../hooks/useStockfish';
 import type { Difficulty } from '../utils/difficultyMapping';
@@ -1529,8 +1528,6 @@ function VictoryOverlay({
   theme,
   gameMode,
   aiColor,
-  moveCount,
-  durationSecs,
   onPlayAgain,
   onMainMenu,
 }: {
@@ -1538,41 +1535,9 @@ function VictoryOverlay({
   theme: (typeof HOUSE_THEMES)[HouseName];
   gameMode: string | null;
   aiColor: 'w' | 'b';
-  moveCount: number;
-  durationSecs: number;
   onPlayAgain: () => void;
   onMainMenu: () => void;
 }) {
-  const user = useUserStore((s) => s.user);
-  const signInWithGoogle = useUserStore((s) => s.signInWithGoogle);
-  const saveGameRecord = useUserStore((s) => s.saveGameRecord);
-  const house = useHouseStore((s) => s.selectedHouse);
-  const difficulty = useGameStore((s) => s.difficulty);
-
-  useEffect(() => {
-    if (!user || !house) return;
-    const isAiMode = gameMode === 'ai';
-    let recordResult: 'win' | 'loss' | 'draw';
-    if (result.reason === 'checkmate') {
-      if (isAiMode) {
-        recordResult = result.winner !== aiColor ? 'win' : 'loss';
-      } else {
-        recordResult = 'win';
-      }
-    } else {
-      recordResult = 'draw';
-    }
-    saveGameRecord({
-      house,
-      game_mode: isAiMode ? 'ai' : 'human',
-      difficulty: isAiMode ? difficulty : null,
-      result: recordResult,
-      reason: result.reason,
-      move_count: moveCount,
-      duration_secs: durationSecs,
-    });
-  }, []);
-
   const accent = theme.accentColor ?? '#ffd700';
   const isCheckmate = result.reason === 'checkmate';
 
@@ -1749,22 +1714,6 @@ function VictoryOverlay({
           </p>
         )}
         {!isCheckmate && <div style={{ marginBottom: '32px' }} />}
-
-        {/* Guest save-progress nudge */}
-        {!user && (
-          <p
-            style={{
-              fontSize: '12px',
-              color: 'rgba(255,215,0,0.55)',
-              marginBottom: '20px',
-              letterSpacing: '1px',
-              cursor: 'pointer',
-            }}
-            onClick={signInWithGoogle}
-          >
-            ✦ Sign in with Google to save your progress
-          </p>
-        )}
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -2728,10 +2677,6 @@ export default function ChessScene() {
           theme={theme}
           gameMode={gameMode}
           aiColor={aiColorSetting}
-          moveCount={useGameStore.getState().moveCount}
-          durationSecs={Math.floor(
-            (Date.now() - (useGameStore.getState().gameStartedAt ?? Date.now())) / 1000,
-          )}
           onPlayAgain={handlePlayAgain}
           onMainMenu={resetHouse}
         />

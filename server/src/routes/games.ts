@@ -5,10 +5,7 @@ import { requireAuth, type AuthRequest } from '../middleware/requireAuth';
 
 const router = Router();
 
-const supabaseAdmin = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
-);
+const supabaseAdmin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!);
 
 // Simple in-memory rate limiter: max 100 inserts per user per hour
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();

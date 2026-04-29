@@ -759,13 +759,14 @@ function GameLogic({
   // ── Scene setup ────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    scene.add(effectsGroup.current);
+    const eg = effectsGroup.current;
+    scene.add(eg);
     soundsRef.current = {
       move: new Howl({ src: ['/audio/move.mp3'], volume: 0.5, preload: true }),
       check: new Howl({ src: ['/audio/check.mp3'], volume: 0.7, preload: true }),
     };
     return () => {
-      scene.remove(effectsGroup.current);
+      scene.remove(eg);
       soundsRef.current?.move.unload();
       soundsRef.current?.check.unload();
     };
@@ -844,12 +845,13 @@ function GameLogic({
       });
     });
 
+    const pm = pieceMeshes.current;
     return () => {
-      for (const m of pieceMeshes.current.values()) {
+      for (const m of pm.values()) {
         scene.remove(m);
         disposePieceGroup(m);
       }
-      pieceMeshes.current.clear();
+      pm.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [house, modelsVersion]); // rebuild pieces when house changes or GLTFs finish loading
@@ -936,7 +938,7 @@ function GameLogic({
         }
       }
     },
-    [scene, theme],
+    [scene, theme, tintPiece],
   );
 
   // ── Capture animation ──────────────────────────────────────────────────────
@@ -1250,6 +1252,7 @@ function GameLogic({
       animateCastlingRook,
       captureCamera,
       cameraShake,
+      detectGameOver,
       playCaptureAnimation,
       reconcilePieces,
       syncGameHistory,
@@ -1416,13 +1419,13 @@ function GameLogic({
     },
     [
       aiColor,
-      camera,
       clearHighlights,
       engineReady,
       executeMove,
       getClickedSquare,
       highlightLegalMoves,
       highlightSelected,
+      tintPiece,
       triggerAiMove,
     ],
   );
@@ -2272,7 +2275,7 @@ export default function ChessScene() {
         />
         <Canvas
           style={{ position: 'relative', zIndex: 1 }}
-          shadows
+          shadows="soft"
           camera={{ position: [0, 12, 10], fov: 45 }}
           gl={{
             antialias: true,
@@ -2289,13 +2292,14 @@ export default function ChessScene() {
             position={[6, 14, 8]}
             intensity={1.2}
             castShadow
-            shadow-mapSize={[2048, 2048]}
-            shadow-camera-far={50}
-            shadow-camera-left={-10}
-            shadow-camera-right={10}
-            shadow-camera-top={10}
-            shadow-camera-bottom={-10}
-            shadow-bias={-0.001}
+            shadow-mapSize={[4096, 4096]}
+            shadow-camera-far={40}
+            shadow-camera-left={-8}
+            shadow-camera-right={8}
+            shadow-camera-top={8}
+            shadow-camera-bottom={-8}
+            shadow-bias={-0.0005}
+            shadow-normalBias={0.03}
           />
           <directionalLight position={[-5, 6, -8]} intensity={0.4} color={0xaabbff} />
 

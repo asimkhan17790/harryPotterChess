@@ -29,3 +29,5 @@ node_modules/
 # Build artifacts
 dist/
 build/
+.playwright-mcp/
+*.png

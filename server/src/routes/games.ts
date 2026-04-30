@@ -38,7 +38,11 @@ const gameRecordSchema = z.object({
 });
 
 router.post('/games', requireAuth, async (req: AuthRequest, res) => {
-  const userId = req.userId!;
+  const userId = req.userId;
+  if (!userId) {
+    res.status(401).json({ code: 'UNAUTHORIZED', message: 'Missing user identity' });
+    return;
+  }
 
   if (!checkRateLimit(userId)) {
     res.status(429).json({ code: 'RATE_LIMITED', message: 'Too many game records this hour' });

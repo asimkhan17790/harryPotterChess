@@ -50,7 +50,9 @@ export default function ProfileModal() {
       fetchStats(user.id);
       supabase
         .from('game_records')
-        .select('*')
+        .select(
+          'id, house, game_mode, difficulty, result, reason, move_count, duration_secs, played_at',
+        )
         .eq('user_id', user.id)
         .order('played_at', { ascending: false })
         .limit(10)
@@ -58,7 +60,7 @@ export default function ProfileModal() {
           if (data) setRecentGames(data as GameRecord[]);
         });
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, fetchStats]);
 
   useEffect(() => {
     if (editingName && nameInputRef.current) {
@@ -72,7 +74,7 @@ export default function ProfileModal() {
     }
     if (isOpen) document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
+  }, [isOpen, closeProfile]);
 
   if (!isOpen || !user) return null;
 

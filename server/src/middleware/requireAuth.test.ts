@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
+import type { AuthError, User } from '@supabase/supabase-js';
+import type { AuthRequest } from './requireAuth';
 
 // Mock supabaseAdmin before importing requireAuth
 vi.mock('../lib/supabaseAdmin', () => ({
@@ -47,7 +49,7 @@ describe('requireAuth middleware', () => {
   it('returns 401 when Supabase returns an error', async () => {
     vi.mocked(supabaseAdmin.auth.getUser).mockResolvedValueOnce({
       data: { user: null },
-      error: { message: 'Invalid token' } as any,
+      error: { message: 'Invalid token' } as unknown as AuthError,
     });
     const req = makeReq('Bearer bad-token');
     const res = makeRes();
@@ -59,10 +61,10 @@ describe('requireAuth middleware', () => {
 
   it('calls next() and sets req.userId on valid token', async () => {
     vi.mocked(supabaseAdmin.auth.getUser).mockResolvedValueOnce({
-      data: { user: { id: 'user-123' } as any },
+      data: { user: { id: 'user-123' } as unknown as User },
       error: null,
     });
-    const req = makeReq('Bearer valid-token') as any;
+    const req = makeReq('Bearer valid-token') as unknown as AuthRequest;
     const res = makeRes();
     const next = vi.fn();
     await requireAuth(req as Request, res as unknown as Response, next as NextFunction);

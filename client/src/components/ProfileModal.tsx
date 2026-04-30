@@ -60,7 +60,7 @@ export default function ProfileModal() {
           if (data) setRecentGames(data as GameRecord[]);
         });
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, fetchStats]);
 
   useEffect(() => {
     if (editingName && nameInputRef.current) {
@@ -74,7 +74,7 @@ export default function ProfileModal() {
     }
     if (isOpen) document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
+  }, [isOpen, closeProfile]);
 
   if (!isOpen || !user) return null;
 

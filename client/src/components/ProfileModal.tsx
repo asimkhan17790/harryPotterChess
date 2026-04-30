@@ -37,9 +37,12 @@ export default function ProfileModal() {
   const fetchStats = useUserStore((s) => s.fetchStats);
   const setProfile = useUserStore((s) => s.setProfile);
 
+  const syncHouseToProfile = useUserStore((s) => s.syncHouseToProfile);
+
   const [recentGames, setRecentGames] = useState<GameRecord[]>([]);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
+  const [savingHouse, setSavingHouse] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -92,6 +95,13 @@ export default function ProfileModal() {
     setEditingName(false);
   }
 
+  async function saveHouse(h: string) {
+    if (savingHouse || h === house) return;
+    setSavingHouse(true);
+    await syncHouseToProfile(h);
+    setSavingHouse(false);
+  }
+
   function fmtDuration(secs: number) {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
@@ -119,7 +129,7 @@ export default function ProfileModal() {
 
   const modalStyle: React.CSSProperties = {
     width: '100%',
-    maxWidth: '680px',
+    maxWidth: '760px',
     maxHeight: '90vh',
     overflowY: 'auto',
     background: 'rgba(8, 4, 22, 0.95)',
@@ -153,10 +163,11 @@ export default function ProfileModal() {
     background: 'rgba(3,1,12,0.88)',
     border: '1px solid rgba(255,215,0,0.25)',
     borderRadius: '10px',
-    padding: '16px',
+    padding: '12px 8px',
     textAlign: 'center',
     flex: '1 1 0',
-    minWidth: '100px',
+    minWidth: '90px',
+    overflow: 'hidden',
   };
 
   const resultColor = (r: string) => (r === 'win' ? '#4caf50' : r === 'loss' ? '#cc3333' : '#aaa');
@@ -281,6 +292,52 @@ export default function ProfileModal() {
           </div>
         </div>
 
+        {/* House picker */}
+        <div style={{ marginBottom: '28px' }}>
+          <div
+            style={{
+              color: 'rgba(255,215,0,0.6)',
+              fontSize: '11px',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              marginBottom: '12px',
+            }}
+          >
+            Favorite House
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {(['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff'] as const).map((h) => {
+              const selected = house === h;
+              return (
+                <button
+                  key={h}
+                  onClick={() => saveHouse(h)}
+                  disabled={savingHouse}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    border: `1.5px solid ${selected ? HOUSE_COLORS[h] : 'rgba(255,215,0,0.2)'}`,
+                    background: selected ? HOUSE_COLORS[h] + '33' : 'rgba(3,1,12,0.6)',
+                    color: selected ? '#e8d5a3' : 'rgba(232,213,163,0.5)',
+                    fontSize: '12px',
+                    fontFamily: "'Cinzel','Georgia',serif",
+                    letterSpacing: '1px',
+                    textTransform: 'capitalize',
+                    cursor: savingHouse ? 'wait' : 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: selected ? `0 0 12px ${HOUSE_COLORS[h]}55` : 'none',
+                  }}
+                >
+                  {HOUSE_CRESTS[h]} {h}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Stats */}
         <div style={{ marginBottom: '28px' }}>
           <div
@@ -294,7 +351,7 @@ export default function ProfileModal() {
           >
             Spell Record
           </div>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {[
               { label: 'Games', value: stats?.games_played ?? 0 },
               { label: 'Wins', value: stats?.wins ?? 0, color: '#4caf50' },
@@ -321,19 +378,28 @@ export default function ProfileModal() {
               },
               {
                 label: 'Favorite House',
-                value: stats?.favorite_house
-                  ? stats.favorite_house.charAt(0).toUpperCase() + stats.favorite_house.slice(1)
-                  : '—',
-                color: stats?.favorite_house ? HOUSE_COLORS[stats.favorite_house] : undefined,
+                value: house
+                  ? house.charAt(0).toUpperCase() + house.slice(1)
+                  : stats?.favorite_house
+                    ? stats.favorite_house.charAt(0).toUpperCase() + stats.favorite_house.slice(1)
+                    : '—',
+                color: house
+                  ? HOUSE_COLORS[house]
+                  : stats?.favorite_house
+                    ? HOUSE_COLORS[stats.favorite_house]
+                    : undefined,
               },
             ].map(({ label, value, color }) => (
               <div key={label} style={statCardStyle}>
                 <div
                   style={{
                     color: color ?? '#e8d5a3',
-                    fontSize: '22px',
+                    fontSize: String(value).length > 6 ? '14px' : '20px',
                     fontWeight: 700,
                     marginBottom: '4px',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    lineHeight: 1.2,
                   }}
                 >
                   {value}
@@ -341,9 +407,10 @@ export default function ProfileModal() {
                 <div
                   style={{
                     color: 'rgba(232,213,163,0.6)',
-                    fontSize: '11px',
-                    letterSpacing: '1.5px',
+                    fontSize: '10px',
+                    letterSpacing: '1px',
                     textTransform: 'uppercase',
+                    marginTop: '4px',
                   }}
                 >
                   {label}

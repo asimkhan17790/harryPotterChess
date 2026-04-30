@@ -2186,7 +2186,7 @@ function GameHUD() {
     <div
       style={{
         position: 'absolute',
-        top: '16px',
+        top: '72px',
         right: '16px',
         zIndex: 10,
         background: 'rgba(4,2,14,0.82)',

@@ -524,7 +524,7 @@ export default function GameModeSelection() {
       </div>
 
       <p style={{ fontSize: '11px', color: '#3a3228', letterSpacing: '4px', zIndex: 2 }}>
-        ✦ &nbsp; WIZARD&apos;S CHESS &nbsp; ✦
+        ✦ &nbsp; A WIZARD&apos;S CHESS &nbsp; ✦
       </p>
     </div>
   );

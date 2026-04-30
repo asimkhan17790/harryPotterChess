@@ -56,6 +56,31 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
         overflow: 'hidden',
       }}
     >
+      {/* Signed-in user name — top right */}
+      {user && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '24px',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            border: '1px solid rgba(255,215,0,0.3)',
+            background: 'rgba(255,215,0,0.06)',
+            color: '#ffd700',
+            fontSize: '13px',
+            letterSpacing: '1px',
+            fontFamily: '"Georgia","Times New Roman",serif',
+          }}
+        >
+          ✦ {user.user_metadata?.full_name?.split(' ')[0] ?? user.email}
+        </div>
+      )}
+
       {/* Starfield */}
       {STARS.map((st, i) => (
         <div
@@ -181,21 +206,6 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
           }}
         />
 
-        {/* Welcome back for signed-in users */}
-        {user && (
-          <p
-            style={{
-              fontSize: '13px',
-              color: '#ffd70099',
-              letterSpacing: '2px',
-              marginBottom: '20px',
-              fontStyle: 'italic',
-            }}
-          >
-            Welcome back, {user.user_metadata?.full_name?.split(' ')[0] ?? 'wizard'}
-          </p>
-        )}
-
         {/* Action buttons */}
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}
@@ -226,7 +236,7 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
               textAlign: 'center',
             }}
           >
-            {user ? 'ENTER THE ARENA' : 'PLAY AS GUEST'}
+            PLAY AS GUEST
           </div>
 
           {/* Sign in with Google — shown only when not logged in */}
@@ -281,19 +291,6 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
           )}
         </div>
       </div>
-
-      <p
-        style={{
-          position: 'absolute',
-          bottom: '24px',
-          fontSize: '10px',
-          color: '#2a2420',
-          letterSpacing: '4px',
-          zIndex: 2,
-        }}
-      >
-        ✦ &nbsp; THE SORCERER&apos;S BOARD &nbsp; ✦
-      </p>
     </div>
   );
 }

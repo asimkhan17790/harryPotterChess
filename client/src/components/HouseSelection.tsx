@@ -230,7 +230,7 @@ export default function HouseSelection() {
           zIndex: 2,
         }}
       >
-        ✦ &nbsp; WIZARD&apos;S CHESS &nbsp; ✦
+        ✦ &nbsp; A WIZARD&apos;S CHESS &nbsp; ✦
       </p>
     </div>
   );

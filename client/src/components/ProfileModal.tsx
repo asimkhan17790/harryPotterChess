@@ -85,6 +85,7 @@ export default function ProfileModal() {
       setEditingName(false);
       return;
     }
+    if (nameInput.trim().length > 50) return;
     const { data } = await supabase
       .from('profiles')
       .update({ display_name: nameInput.trim(), updated_at: new Date().toISOString() })
@@ -226,6 +227,7 @@ export default function ProfileModal() {
                   if (e.key === 'Enter') saveDisplayName();
                   if (e.key === 'Escape') setEditingName(false);
                 }}
+                maxLength={50}
                 style={{
                   background: 'rgba(255,215,0,0.08)',
                   border: '1px solid rgba(255,215,0,0.5)',

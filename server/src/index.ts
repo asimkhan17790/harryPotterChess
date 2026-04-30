@@ -3,6 +3,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import helmet from 'helmet';
 import gamesRouter from './routes/games.js';
 
 const app = express();
@@ -15,6 +16,8 @@ const io = new Server(httpServer, {
   },
 });
 
+app.use(helmet());
+app.disable('x-powered-by');
 app.use(cors({ origin: process.env.CLIENT_URL ?? 'http://localhost:5173' }));
 app.use(express.json());
 

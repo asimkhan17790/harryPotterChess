@@ -1,14 +1,19 @@
 import { Router } from 'express';
-import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { requireAuth, type AuthRequest } from '../middleware/requireAuth';
+import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 
 const router = Router();
 
-const supabaseAdmin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!);
-
 // Simple in-memory rate limiter: max 100 inserts per user per hour
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+// Purge expired entries once per hour to prevent unbounded memory growth
+setInterval(() => {
+  for (const [k, v] of rateLimitMap) {
+    if (Date.now() > v.resetAt) rateLimitMap.delete(k);
+  }
+}, 3_600_000);
 
 function checkRateLimit(userId: string): boolean {
   const now = Date.now();
@@ -28,8 +33,8 @@ const gameRecordSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']).nullable(),
   result: z.enum(['win', 'loss', 'draw']),
   reason: z.enum(['checkmate', 'stalemate', 'draw']),
-  move_count: z.number().int().min(0),
-  duration_secs: z.number().int().min(0),
+  move_count: z.number().int().min(0).max(600),
+  duration_secs: z.number().int().min(0).max(86400),
 });
 
 router.post('/games', requireAuth, async (req: AuthRequest, res) => {
@@ -56,7 +61,8 @@ router.post('/games', requireAuth, async (req: AuthRequest, res) => {
     .single();
 
   if (error) {
-    res.status(500).json({ code: 'DB_ERROR', message: error.message });
+    console.error('[games POST] DB error:', error);
+    res.status(500).json({ code: 'DB_ERROR', message: 'Failed to save game record' });
     return;
   }
 

@@ -498,7 +498,15 @@ function HouseCard({
             borderRadius: '22px',
             fontSize: '11px',
             letterSpacing: '3px',
-            color: hovered ? (primaryColor < '#888' ? '#fff' : '#111') : glowColor,
+            color: hovered
+              ? (() => {
+                  const r = parseInt(primaryColor.slice(1, 3), 16);
+                  const g = parseInt(primaryColor.slice(3, 5), 16);
+                  const b = parseInt(primaryColor.slice(5, 7), 16);
+                  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                  return luminance < 0.5 ? '#fff' : '#111';
+                })()
+              : glowColor,
             transition: 'color .28s ease',
             fontWeight: 'bold',
           }}

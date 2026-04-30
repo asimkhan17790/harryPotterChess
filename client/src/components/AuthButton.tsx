@@ -164,7 +164,7 @@ export default function AuthButton() {
   }
 
   return (
-    <div style={{ ...containerStyle, position: 'fixed' }} ref={containerRef}>
+    <div style={containerStyle} ref={containerRef}>
       <div style={pillStyle} onClick={() => setDropdownOpen((o) => !o)}>
         {avatarUrl ? (
           <img src={avatarUrl} alt="avatar" style={avatarStyle} />

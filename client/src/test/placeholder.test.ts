@@ -1,7 +1,1 @@
-import { describe, it, expect } from 'vitest';
-
-describe('placeholder', () => {
-  it('passes', () => {
-    expect(true).toBe(true);
-  });
-});
+// Replaced by client/src/test/utils.test.ts

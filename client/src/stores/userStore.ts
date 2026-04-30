@@ -53,7 +53,11 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   fetchProfile: async (userId: string) => {
     const { user } = get();
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name, avatar_url, house, updated_at')
+      .eq('id', userId)
+      .single();
     if (data) {
       set({ profile: data as Profile });
     } else if (user) {
@@ -76,7 +80,13 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
 
   fetchStats: async (userId: string) => {
-    const { data } = await supabase.from('user_stats').select('*').eq('user_id', userId).single();
+    const { data } = await supabase
+      .from('user_stats')
+      .select(
+        'id, house, game_mode, difficulty, result, reason, move_count, duration_secs, played_at',
+      )
+      .eq('user_id', userId)
+      .single();
     if (data) set({ stats: data as UserStats });
   },
 

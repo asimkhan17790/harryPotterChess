@@ -50,7 +50,9 @@ export default function ProfileModal() {
       fetchStats(user.id);
       supabase
         .from('game_records')
-        .select('*')
+        .select(
+          'id, house, game_mode, difficulty, result, reason, move_count, duration_secs, played_at',
+        )
         .eq('user_id', user.id)
         .order('played_at', { ascending: false })
         .limit(10)

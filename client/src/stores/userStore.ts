@@ -83,7 +83,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     const { data } = await supabase
       .from('user_stats')
       .select(
-        'id, house, game_mode, difficulty, result, reason, move_count, duration_secs, played_at',
+        'user_id, games_played, wins, losses, draws, win_rate, longest_win_streak, fastest_win_secs, avg_moves_per_game, favorite_house, last_played_at',
       )
       .eq('user_id', userId)
       .single();
@@ -93,6 +93,8 @@ export const useUserStore = create<UserState>((set, get) => ({
   syncHouseToProfile: async (house: string) => {
     const { user } = get();
     if (!user) return;
+    if (!(['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff'] as const).includes(house as never))
+      return;
     const { data } = await supabase
       .from('profiles')
       .update({ house, updated_at: new Date().toISOString() })

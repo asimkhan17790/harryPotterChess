@@ -1,3 +1,5 @@
+import { useUserStore } from '../stores/userStore';
+
 if (typeof document !== 'undefined' && !document.getElementById('lp-styles')) {
   const s = document.createElement('style');
   s.id = 'lp-styles';
@@ -9,6 +11,7 @@ if (typeof document !== 'undefined' && !document.getElementById('lp-styles')) {
     @keyframes lpBtnBreathe{0%,100%{box-shadow:0 0 12px #ffd70088,0 0 24px #ffd70044}50%{box-shadow:0 0 28px #ffd700bb,0 0 56px #ffd70066}}
     @keyframes lpOrb{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.4}50%{transform:translate(-50%,-50%) scale(1.5);opacity:.75}}
     @keyframes lpRuneFloat{0%,100%{opacity:.15;transform:translateY(0) rotate(0deg)}50%{opacity:.4;transform:translateY(-14px) rotate(6deg)}}
+    @keyframes lpGuestPulse{0%,100%{box-shadow:0 0 8px rgba(255,215,0,0.2)}50%{box-shadow:0 0 18px rgba(255,215,0,0.45)}}
   `;
   document.head.appendChild(s);
 }
@@ -34,6 +37,9 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onContinue }: LandingPageProps) {
+  const signInWithGoogle = useUserStore((s) => s.signInWithGoogle);
+  const user = useUserStore((s) => s.user);
+
   return (
     <div
       style={{
@@ -118,7 +124,6 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '0px',
           animation: 'lpFadeUp .8s cubic-bezier(.34,1.56,.64,1) both',
         }}
       >
@@ -126,7 +131,7 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
         <div
           style={{
             fontSize: '72px',
-            marginBottom: '8px',
+            marginBottom: '16px',
             animation: 'lpFloat 5s ease-in-out infinite',
             filter: 'drop-shadow(0 0 24px #ffd70088)',
           }}
@@ -134,25 +139,12 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
           ♟
         </div>
 
-        {/* Eyebrow */}
-        <div
-          style={{
-            fontSize: '11px',
-            letterSpacing: '7px',
-            color: '#555',
-            marginBottom: '10px',
-            textTransform: 'uppercase',
-          }}
-        >
-          ✦ &nbsp; Welcome to &nbsp; ✦
-        </div>
-
         {/* Title */}
         <h1
           style={{
-            fontSize: 'clamp(28px, 6vw, 58px)',
+            fontSize: 'clamp(24px, 5vw, 52px)',
             fontWeight: 'bold',
-            margin: '0 0 6px',
+            margin: '0 0 8px',
             background:
               'linear-gradient(90deg, #b8860b 0%, #ffd700 30%, #ffe066 50%, #ffd700 70%, #b8860b 100%)',
             backgroundSize: '200% 100%',
@@ -164,19 +156,19 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
             textAlign: 'center',
           }}
         >
-          Wizard&apos;s Chess
+          The Sorcerer&apos;s Board
         </h1>
 
         <p
           style={{
-            fontSize: '14px',
+            fontSize: '11px',
             color: '#a08848',
-            letterSpacing: '2px',
+            letterSpacing: '5px',
             margin: '0 0 40px',
-            fontStyle: 'italic',
+            textTransform: 'uppercase',
           }}
         >
-          The Sorcerer&apos;s Board
+          ✦ &nbsp; A Wizard&apos;s Chess &nbsp; ✦
         </p>
 
         {/* Divider */}
@@ -185,35 +177,108 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
             width: '260px',
             height: '1px',
             background: 'linear-gradient(to right, transparent, #ffd700, transparent)',
-            marginBottom: '40px',
+            marginBottom: '36px',
           }}
         />
 
-        {/* Enter button */}
+        {/* Welcome back for signed-in users */}
+        {user && (
+          <p
+            style={{
+              fontSize: '13px',
+              color: '#ffd70099',
+              letterSpacing: '2px',
+              marginBottom: '20px',
+              fontStyle: 'italic',
+            }}
+          >
+            Welcome back, {user.user_metadata?.full_name?.split(' ')[0] ?? 'wizard'}
+          </p>
+        )}
+
+        {/* Action buttons */}
         <div
-          onClick={onContinue}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') onContinue();
-          }}
-          style={{
-            cursor: 'pointer',
-            padding: '14px 52px',
-            borderRadius: '30px',
-            border: '1.5px solid #ffd700',
-            background: 'linear-gradient(90deg, #b8860b, #ffd700, #ffe066, #ffd700, #b8860b)',
-            backgroundSize: '200% 100%',
-            color: '#0a0810',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            letterSpacing: '4px',
-            fontFamily: '"Georgia","Times New Roman",serif',
-            animation: 'lpGoldShimmer 2s linear infinite, lpBtnBreathe 2.5s ease-in-out infinite',
-            userSelect: 'none',
-          }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}
         >
-          ENTER THE ARENA
+          {/* Primary: play now */}
+          <div
+            onClick={onContinue}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') onContinue();
+            }}
+            style={{
+              cursor: 'pointer',
+              padding: '14px 52px',
+              borderRadius: '30px',
+              border: '1.5px solid #ffd700',
+              background: 'linear-gradient(90deg, #b8860b, #ffd700, #ffe066, #ffd700, #b8860b)',
+              backgroundSize: '200% 100%',
+              color: '#0a0810',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              letterSpacing: '4px',
+              fontFamily: '"Georgia","Times New Roman",serif',
+              animation: 'lpGoldShimmer 2s linear infinite, lpBtnBreathe 2.5s ease-in-out infinite',
+              userSelect: 'none',
+              minWidth: '240px',
+              textAlign: 'center',
+            }}
+          >
+            {user ? 'ENTER THE ARENA' : 'PLAY AS GUEST'}
+          </div>
+
+          {/* Sign in with Google — shown only when not logged in */}
+          {!user && (
+            <div
+              onClick={() => signInWithGoogle()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') signInWithGoogle();
+              }}
+              style={{
+                cursor: 'pointer',
+                padding: '13px 32px',
+                borderRadius: '30px',
+                border: '1.5px solid rgba(255,215,0,0.35)',
+                background: 'rgba(255,255,255,0.04)',
+                color: '#e8d5a3',
+                fontSize: '13px',
+                letterSpacing: '2px',
+                fontFamily: '"Georgia","Times New Roman",serif',
+                animation: 'lpGuestPulse 3s ease-in-out infinite',
+                userSelect: 'none',
+                minWidth: '240px',
+                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              SIGN IN WITH GOOGLE
+            </div>
+          )}
         </div>
       </div>
 
@@ -227,7 +292,7 @@ export default function LandingPage({ onContinue }: LandingPageProps) {
           zIndex: 2,
         }}
       >
-        ✦ &nbsp; WIZARD&apos;S CHESS &nbsp; ✦
+        ✦ &nbsp; THE SORCERER&apos;S BOARD &nbsp; ✦
       </p>
     </div>
   );

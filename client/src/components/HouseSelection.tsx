@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { HOUSE_THEMES } from '../data/houseThemes';
 import type { HouseName } from '../data/houseThemes';
 import { useHouseStore } from '../stores/houseStore';
+import { useUserStore } from '../stores/userStore';
 
 // ── CSS injected once ─────────────────────────────────────────────────────────
 if (typeof document !== 'undefined' && !document.getElementById('hs-styles')) {
@@ -49,7 +50,14 @@ const HOUSE_META: Record<HouseName, { crest: string; traits: string[]; motto: st
 
 // ── Root component ────────────────────────────────────────────────────────────
 export default function HouseSelection() {
-  const selectHouse = useHouseStore((s) => s.selectHouse);
+  const baseSelectHouse = useHouseStore((s) => s.selectHouse);
+  const selectHouse = (house: HouseName) => {
+    baseSelectHouse(house);
+    // Persist house preference for logged-in users; no-op for guests.
+    if (useUserStore.getState().user) {
+      useUserStore.getState().syncHouseToProfile(house);
+    }
+  };
 
   return (
     <div

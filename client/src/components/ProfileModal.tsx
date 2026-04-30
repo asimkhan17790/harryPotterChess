@@ -305,6 +305,27 @@ export default function ProfileModal() {
                 value: stats?.win_rate != null ? `${stats.win_rate}%` : '—',
                 color: '#ffd700',
               },
+              {
+                label: 'Best Streak',
+                value: stats?.longest_win_streak ?? 0,
+                color: '#ffd700',
+              },
+              {
+                label: 'Fastest Win',
+                value: stats?.fastest_win_secs != null ? fmtDuration(stats.fastest_win_secs) : '—',
+                color: '#4caf50',
+              },
+              {
+                label: 'Avg Moves',
+                value: stats?.avg_moves_per_game ?? '—',
+              },
+              {
+                label: 'Favorite House',
+                value: stats?.favorite_house
+                  ? stats.favorite_house.charAt(0).toUpperCase() + stats.favorite_house.slice(1)
+                  : '—',
+                color: stats?.favorite_house ? HOUSE_COLORS[stats.favorite_house] : undefined,
+              },
             ].map(({ label, value, color }) => (
               <div key={label} style={statCardStyle}>
                 <div

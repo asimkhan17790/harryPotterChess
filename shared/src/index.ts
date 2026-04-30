@@ -26,6 +26,11 @@ export interface UserStats {
   losses: number;
   draws: number;
   win_rate: number | null;
+  longest_win_streak: number | null;
+  fastest_win_secs: number | null;
+  avg_moves_per_game: number | null;
+  favorite_house: string | null;
+  last_played_at: string | null;
 }
 
 export type HouseName = 'gryffindor' | 'slytherin' | 'ravenclaw' | 'hufflepuff';

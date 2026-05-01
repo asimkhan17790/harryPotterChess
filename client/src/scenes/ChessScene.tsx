@@ -59,6 +59,12 @@ import { onModelsReady } from '../geometry/gltfPieceCache';
 import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
 
+// ── Mobile detection (evaluated once at module load) ─────────────────────────
+const IS_MOBILE =
+  typeof window !== 'undefined' &&
+  (window.matchMedia('(max-width: 900px)').matches ||
+    window.matchMedia('(pointer: coarse)').matches);
+
 // ── Google Font: Cinzel (fantasy serif for panel headers) ────────────────────
 if (typeof document !== 'undefined' && !document.getElementById('hp-cinzel-font')) {
   const l = document.createElement('link');
@@ -216,10 +222,10 @@ function ChessBoard({
               roughness={0.08}
               metalness={0.15}
               mirror={0.4}
-              blur={[200, 100]}
-              resolution={256}
+              blur={IS_MOBILE ? [0, 0] : [200, 100]}
+              resolution={IS_MOBILE ? 64 : 256}
               mixBlur={0.8}
-              mixStrength={0.6}
+              mixStrength={IS_MOBILE ? 0.2 : 0.6}
               depthScale={0}
               minDepthThreshold={0.9}
               maxDepthThreshold={1}
@@ -2008,6 +2014,17 @@ function GameInfoPanel() {
   const capturedByWhite = useGameStore((s) => s.capturedByWhite);
   const capturedByBlack = useGameStore((s) => s.capturedByBlack);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.matchMedia('(max-width: 900px)').matches ||
+      window.matchMedia('(pointer: coarse)').matches
+    );
+  });
+  const isMobile =
+    typeof window !== 'undefined' &&
+    (window.matchMedia('(max-width: 900px)').matches ||
+      window.matchMedia('(pointer: coarse)').matches);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -2020,11 +2037,43 @@ function GameInfoPanel() {
     movePairs.push([moveHistory[i], moveHistory[i + 1]]);
   }
 
+  if (isMobile && collapsed) {
+    return (
+      <button
+        onClick={() => setCollapsed(false)}
+        style={{
+          position: 'absolute',
+          top: '170px',
+          right: '16px',
+          zIndex: 10,
+          background: 'rgba(3,1,12,0.85)',
+          border: '1px solid rgba(200,150,40,0.45)',
+          borderRadius: '20px',
+          padding: '6px 14px',
+          color: GOLD,
+          fontFamily: CINZEL,
+          fontSize: '11px',
+          letterSpacing: '1.5px',
+          cursor: 'pointer',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          minHeight: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+        }}
+      >
+        ≡ Stats
+      </button>
+    );
+  }
+
   return (
     <div
       style={{
         position: 'absolute',
-        top: '120px',
+        top: '170px',
         right: '16px',
         zIndex: 10,
         background: 'rgba(3,1,12,0.88)',
@@ -2039,6 +2088,31 @@ function GameInfoPanel() {
         userSelect: 'none',
       }}
     >
+      {isMobile && (
+        <button
+          onClick={() => setCollapsed(true)}
+          aria-label="Minimize stats"
+          style={{
+            position: 'absolute',
+            top: '6px',
+            right: '8px',
+            background: 'transparent',
+            border: 'none',
+            color: GOLD_DIM,
+            fontSize: '14px',
+            cursor: 'pointer',
+            padding: '6px',
+            minWidth: '32px',
+            minHeight: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          ✕
+        </button>
+      )}
+
       {/* Captured */}
       <div style={{ paddingBottom: '12px', marginBottom: '12px', borderBottom: DIVIDER }}>
         <SectionHeader>Captured</SectionHeader>
@@ -2276,6 +2350,25 @@ function GameHUD() {
   );
 }
 
+// ── Responsive camera rig (R3F child — must live inside <Canvas>) ────────────
+
+function CameraRig() {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    const portrait = size.height > size.width;
+    const small = size.width < 900;
+    const fov = small ? (portrait ? 60 : 52) : 45;
+    const dist = small ? (portrait ? 14 : 12) : 10;
+    const y = small ? 14 : 12;
+    const cam = camera as THREE.PerspectiveCamera;
+    // eslint-disable-next-line react-hooks/immutability
+    cam.fov = fov;
+    cam.position.set(0, y, dist);
+    cam.updateProjectionMatrix();
+  }, [camera, size.width, size.height]);
+  return null;
+}
+
 // ── Root export ───────────────────────────────────────────────────────────────
 
 export default function ChessScene() {
@@ -2335,24 +2428,12 @@ export default function ChessScene() {
             toneMapping: THREE.ACESFilmicToneMapping,
             toneMappingExposure: 0.65,
           }}
-          dpr={[1, 2]}
+          dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
           performance={{ min: 0.5 }}
         >
           {/* Lighting — intentionally dim; candles provide most of the fill */}
-          <ambientLight intensity={0.18} color={0xfff0d0} />
-          <directionalLight
-            position={[6, 14, 8]}
-            intensity={1.2}
-            castShadow
-            shadow-mapSize={[2048, 2048]}
-            shadow-camera-far={50}
-            shadow-camera-left={-10}
-            shadow-camera-right={10}
-            shadow-camera-top={10}
-            shadow-camera-bottom={-10}
-            shadow-bias={-0.001}
-            shadow-normalBias={0.03}
-          />
+          <ambientLight intensity={0.35} color={0xfff0d0} />
+          <directionalLight position={[5, 22, 5]} intensity={1.1} />
           <directionalLight position={[-5, 6, -8]} intensity={0.4} color={0xaabbff} />
 
           {/* HDRI — apartment preset is dark, good for candlelit mood */}
@@ -2360,7 +2441,7 @@ export default function ChessScene() {
 
           {/* Ambient magic sparkles above board */}
           <Sparkles
-            count={50}
+            count={IS_MOBILE ? 20 : 50}
             scale={9}
             size={0.6}
             speed={0.2}
@@ -2407,11 +2488,12 @@ export default function ChessScene() {
             minPolarAngle={Math.PI / 6}
             maxPolarAngle={Math.PI / 2.2}
             minDistance={8}
-            maxDistance={22}
+            maxDistance={IS_MOBILE ? 26 : 22}
             enableDamping
             dampingFactor={0.05}
             target={[0, 0, 0]}
           />
+          <CameraRig />
 
           {/* Post-processing */}
           <PostFX />
@@ -2443,8 +2525,8 @@ export default function ChessScene() {
           onClick={() => setShowExitDialog(true)}
           style={{
             position: 'absolute',
-            top: '16px',
-            left: '16px',
+            top: 'calc(16px + var(--safe-top))',
+            left: 'calc(16px + var(--safe-left))',
             zIndex: 10,
             background: 'rgba(10,5,20,0.75)',
             border: '1px solid rgba(200,160,60,0.5)',
@@ -2453,6 +2535,7 @@ export default function ChessScene() {
             fontFamily: '"Georgia","Times New Roman",serif',
             fontSize: '13px',
             padding: '8px 14px',
+            minHeight: '44px',
             cursor: 'pointer',
             letterSpacing: '1px',
             backdropFilter: 'blur(4px)',

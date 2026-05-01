@@ -5,6 +5,7 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main]
+  workflow_call:
 
 jobs:
   lint-and-test:
@@ -27,3 +28,6 @@ jobs:
 
       - name: Run tests
         run: npm run test
+
+      - name: Build (verify)
+        run: npm run build --workspaces --if-present

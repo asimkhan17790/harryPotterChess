@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: wizard-chess-server
+    runtime: node
+    region: oregon
+    plan: free
+    autoDeploy: false
+    buildCommand: npm install && npm run build --workspaces --if-present
+    startCommand: node server/dist/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: CLIENT_URL
+        sync: false

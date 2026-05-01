@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build -w client",
-  "outputDirectory": "client/dist",
+  "buildCommand": "npm install && npm run build --workspaces --if-present",
+  "outputDirectory": "dist",
   "installCommand": "npm install",
   "git": {
     "deploymentEnabled": {

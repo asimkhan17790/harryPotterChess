@@ -28,10 +28,12 @@ export default function AuthButton() {
     };
   }, []);
 
+  const noHover = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
+
   const containerStyle: React.CSSProperties = {
     position: 'fixed',
-    top: '16px',
-    right: '16px',
+    top: 'calc(16px + var(--safe-top))',
+    right: 'calc(16px + var(--safe-right))',
     zIndex: 200,
     fontFamily: "'Cinzel', 'Georgia', serif",
   };
@@ -41,6 +43,7 @@ export default function AuthButton() {
     alignItems: 'center',
     gap: '8px',
     padding: '8px 16px',
+    minHeight: '44px',
     background: 'rgba(3, 1, 12, 0.85)',
     border: '1px solid rgba(255, 215, 0, 0.6)',
     borderRadius: '24px',
@@ -60,6 +63,7 @@ export default function AuthButton() {
     alignItems: 'center',
     gap: '8px',
     padding: '6px 12px 6px 6px',
+    minHeight: '44px',
     background: 'rgba(3, 1, 12, 0.85)',
     border: '1px solid rgba(255, 215, 0, 0.6)',
     borderRadius: '24px',
@@ -130,11 +134,13 @@ export default function AuthButton() {
           style={signInBtnStyle}
           onClick={signInWithGoogle}
           onMouseEnter={(e) => {
+            if (noHover) return;
             (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,215,0,0.9)';
             (e.currentTarget as HTMLButtonElement).style.boxShadow =
               '0 0 12px rgba(255,215,0,0.25)';
           }}
           onMouseLeave={(e) => {
+            if (noHover) return;
             (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,215,0,0.6)';
             (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
           }}
@@ -182,9 +188,11 @@ export default function AuthButton() {
           <button
             style={dropdownItemStyle}
             onMouseEnter={(e) => {
+              if (noHover) return;
               (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,215,0,0.08)';
             }}
             onMouseLeave={(e) => {
+              if (noHover) return;
               (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
             }}
             onClick={() => {
@@ -198,9 +206,11 @@ export default function AuthButton() {
           <button
             style={{ ...dropdownItemStyle, color: '#cc8888' }}
             onMouseEnter={(e) => {
+              if (noHover) return;
               (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,100,100,0.08)';
             }}
             onMouseLeave={(e) => {
+              if (noHover) return;
               (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
             }}
             onClick={() => {

@@ -48,6 +48,11 @@ const HOUSE_META: Record<HouseName, { crest: string; traits: string[]; motto: st
   hufflepuff: { crest: '🦡', traits: ['Loyal', 'Patient', 'Hardworking'], motto: '"Terra Firma"' },
 };
 
+const IS_MOBILE =
+  typeof window !== 'undefined' &&
+  (window.matchMedia('(max-width: 900px)').matches ||
+    window.matchMedia('(pointer: coarse)').matches);
+
 // ── Root component ────────────────────────────────────────────────────────────
 export default function HouseSelection() {
   const baseSelectHouse = useHouseStore((s) => s.selectHouse);
@@ -61,6 +66,7 @@ export default function HouseSelection() {
 
   return (
     <div
+      className="mobile-screen"
       style={{
         width: '100vw',
         minHeight: '100vh',
@@ -120,6 +126,7 @@ export default function HouseSelection() {
 
       {/* ── Floating Header ── */}
       <div
+        className="mobile-sticky-header"
         style={{
           position: 'relative',
           zIndex: 2,
@@ -132,8 +139,9 @@ export default function HouseSelection() {
           textAlign: 'center',
           marginBottom: '36px',
           boxShadow: '0 8px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,215,0,0.08) inset',
-          animation:
-            'hsHeaderIn .7s cubic-bezier(.34,1.56,.64,1) both, hsHeaderFloat 5s ease-in-out 1s infinite',
+          animation: IS_MOBILE
+            ? 'hsHeaderIn .7s cubic-bezier(.34,1.56,.64,1) both'
+            : 'hsHeaderIn .7s cubic-bezier(.34,1.56,.64,1) both, hsHeaderFloat 5s ease-in-out 1s infinite',
         }}
       >
         <div
@@ -178,6 +186,7 @@ export default function HouseSelection() {
 
         {/* Animated divider */}
         <div
+          className="mobile-header-divider"
           style={{
             height: '1px',
             margin: '18px auto 0',
@@ -189,6 +198,7 @@ export default function HouseSelection() {
 
       {/* ── House Cards ── */}
       <div
+        className="mobile-carousel"
         style={{
           display: 'flex',
           flexWrap: 'wrap',
@@ -288,6 +298,7 @@ function HouseCard({
   return (
     <div
       ref={cardRef}
+      className="mobile-carousel-item"
       onClick={() => onSelect(house)}
       onMouseEnter={() => setHovered(true)}
       onMouseMove={handleMouseMove}
@@ -301,8 +312,9 @@ function HouseCard({
       style={{
         position: 'relative',
         cursor: 'pointer',
-        width: '220px',
-        flex: '0 0 220px',
+        width: 'clamp(150px, calc(50vw - 36px), 220px)',
+        flex: '1 1 150px',
+        maxWidth: '220px',
         borderRadius: '18px',
         padding: '32px 20px 28px',
         background: `linear-gradient(155deg, ${primaryColor}ee 0%, ${primaryColor}88 40%, rgba(8,4,20,.95) 100%)`,

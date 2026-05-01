@@ -79,6 +79,11 @@ const MODE_DATA: Record<'human' | 'ai', ModeData> = {
   },
 };
 
+const IS_MOBILE =
+  typeof window !== 'undefined' &&
+  (window.matchMedia('(max-width: 900px)').matches ||
+    window.matchMedia('(pointer: coarse)').matches);
+
 // ── Root component ────────────────────────────────────────────────────────────
 export default function GameModeSelection() {
   const house = useHouseStore((s) => s.selectedHouse);
@@ -102,6 +107,7 @@ export default function GameModeSelection() {
 
   return (
     <div
+      className="mobile-screen"
       style={{
         width: '100vw',
         minHeight: '100vh',
@@ -179,6 +185,7 @@ export default function GameModeSelection() {
 
       {/* ── Floating frosted-glass header ── */}
       <div
+        className="mobile-sticky-header"
         style={{
           position: 'relative',
           zIndex: 2,
@@ -191,8 +198,9 @@ export default function GameModeSelection() {
           textAlign: 'center',
           marginBottom: '32px',
           boxShadow: '0 8px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,215,0,0.08) inset',
-          animation:
-            'gmsHeaderIn .7s cubic-bezier(.34,1.56,.64,1) both, gmsHeaderFloat 5s ease-in-out 1s infinite',
+          animation: IS_MOBILE
+            ? 'gmsHeaderIn .7s cubic-bezier(.34,1.56,.64,1) both'
+            : 'gmsHeaderIn .7s cubic-bezier(.34,1.56,.64,1) both, gmsHeaderFloat 5s ease-in-out 1s infinite',
         }}
       >
         <div
@@ -277,6 +285,7 @@ export default function GameModeSelection() {
         )}
         {/* Animated divider */}
         <div
+          className="mobile-header-divider"
           style={{
             height: '1px',
             margin: '14px auto 0',
@@ -288,13 +297,14 @@ export default function GameModeSelection() {
 
       {/* ── Mode cards ── */}
       <div
+        className="mobile-carousel"
         style={{
           display: 'flex',
           flexWrap: 'wrap',
           gap: '24px',
           justifyContent: 'center',
           maxWidth: '560px',
-          width: '100%',
+          width: 'min(560px, calc(100vw - 32px))',
           position: 'relative',
           zIndex: 2,
           marginBottom: '28px',
@@ -327,7 +337,7 @@ export default function GameModeSelection() {
             padding: '22px 32px',
             marginBottom: '28px',
             width: '100%',
-            maxWidth: '480px',
+            maxWidth: 'min(480px, calc(100vw - 32px))',
             boxShadow: `0 0 40px ${accent}1a, 0 8px 32px rgba(0,0,0,.55)`,
             animation: 'gmsPanelIn .4s cubic-bezier(.34,1.56,.64,1) both',
           }}
@@ -566,6 +576,7 @@ function ModeCard({ data, accent, primary, selected, entranceDelay, onSelect }: 
   return (
     <div
       ref={cardRef}
+      className="mobile-carousel-item"
       onClick={onSelect}
       onMouseEnter={() => setHovered(true)}
       onMouseMove={handleMouseMove}
@@ -580,8 +591,9 @@ function ModeCard({ data, accent, primary, selected, entranceDelay, onSelect }: 
       style={{
         position: 'relative',
         cursor: 'pointer',
-        width: '220px',
-        flex: '0 0 220px',
+        width: 'clamp(160px, calc(50vw - 36px), 220px)',
+        flex: '1 1 160px',
+        maxWidth: '220px',
         borderRadius: '18px',
         padding: '32px 20px 28px',
         background: selected

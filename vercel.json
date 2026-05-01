@@ -1,10 +1,10 @@
 {
-  "buildCommand": "npm install && npm run build --workspaces --if-present",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "git": {
     "deploymentEnabled": {
-      "main": false
+      "main": true
     }
   }
 }

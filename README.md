@@ -1,4 +1,4 @@
-# Wizard's Chess
+# The Sorcerer's Board
 
 A real-time, multiplayer 3D chess experience playable entirely in the browser — no install required.
 

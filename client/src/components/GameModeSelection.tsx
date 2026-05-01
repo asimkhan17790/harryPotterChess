@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useHouseStore } from '../stores/houseStore';
 import { useGameStore } from '../stores/gameStore';
 import type { Difficulty } from '../utils/difficultyMapping';
@@ -97,6 +97,27 @@ export default function GameModeSelection() {
   const [pendingMode, setPendingMode] = useState<'human' | 'ai' | null>(null);
   const [pendingAiColor, setPendingAiColor] = useState<'w' | 'b'>('w');
   const [pendingDifficulty, setPendingDifficulty] = useState<Difficulty>('medium');
+  const [activeCard, setActiveCard] = useState(0);
+
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      const idx = Math.round(el.scrollLeft / el.clientWidth);
+      setActiveCard(idx);
+    };
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToCard = (idx: number) => {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' });
+  };
 
   const handleBegin = () => {
     if (!pendingMode) return;
@@ -107,6 +128,7 @@ export default function GameModeSelection() {
 
   return (
     <div
+      ref={screenRef}
       className="mobile-screen"
       style={{
         width: '100vw',
@@ -295,32 +317,136 @@ export default function GameModeSelection() {
         />
       </div>
 
+      {/* Scroll-down hint — mobile only, shown below header */}
+      {IS_MOBILE && (
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            textAlign: 'center',
+            marginBottom: '16px',
+            color: `${accent}88`,
+            fontSize: '11px',
+            letterSpacing: '2px',
+            animation: 'gmsHeaderFloat 2s ease-in-out infinite',
+          }}
+        >
+          ↓ swipe cards · scroll for options
+        </div>
+      )}
+
       {/* ── Mode cards ── */}
-      <div
-        className="mobile-carousel"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '24px',
-          justifyContent: 'center',
-          maxWidth: '560px',
-          width: 'min(560px, calc(100vw - 32px))',
-          position: 'relative',
-          zIndex: 2,
-          marginBottom: '28px',
-        }}
-      >
-        {(['human', 'ai'] as const).map((mode, idx) => (
-          <ModeCard
-            key={mode}
-            data={MODE_DATA[mode]}
-            accent={accent}
-            primary={primary}
-            selected={pendingMode === mode}
-            entranceDelay={idx * 0.15}
-            onSelect={() => setPendingMode(mode)}
-          />
-        ))}
+      <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '560px' }}>
+        {/* Prev arrow — mobile only */}
+        {IS_MOBILE && activeCard > 0 && (
+          <button
+            onClick={() => scrollToCard(activeCard - 1)}
+            aria-label="Previous option"
+            style={{
+              position: 'absolute',
+              left: '4px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              background: 'rgba(10,5,25,0.8)',
+              border: `1px solid ${accent}66`,
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              color: accent,
+              fontSize: '18px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            ‹
+          </button>
+        )}
+        {/* Next arrow — mobile only */}
+        {IS_MOBILE && activeCard < 1 && (
+          <button
+            onClick={() => scrollToCard(activeCard + 1)}
+            aria-label="Next option"
+            style={{
+              position: 'absolute',
+              right: '4px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              background: 'rgba(10,5,25,0.8)',
+              border: `1px solid ${accent}66`,
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              color: accent,
+              fontSize: '18px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            ›
+          </button>
+        )}
+        <div
+          ref={carouselRef}
+          className="mobile-carousel"
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '24px',
+            justifyContent: 'center',
+            maxWidth: '560px',
+            width: 'min(560px, calc(100vw - 32px))',
+            position: 'relative',
+            zIndex: 2,
+            marginBottom: '12px',
+          }}
+        >
+          {(['human', 'ai'] as const).map((mode, idx) => (
+            <ModeCard
+              key={mode}
+              data={MODE_DATA[mode]}
+              accent={accent}
+              primary={primary}
+              selected={pendingMode === mode}
+              entranceDelay={idx * 0.15}
+              onSelect={() => {
+                setPendingMode(mode);
+              }}
+            />
+          ))}
+        </div>
+        {/* Dot indicators — mobile only */}
+        {IS_MOBILE && (
+          <div
+            style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}
+          >
+            {(['human', 'ai'] as const).map((mode, idx) => (
+              <button
+                key={mode}
+                onClick={() => scrollToCard(idx)}
+                aria-label={`Go to ${MODE_DATA[mode].title}`}
+                style={{
+                  width: activeCard === idx ? '24px' : '8px',
+                  height: '8px',
+                  borderRadius: '4px',
+                  background: activeCard === idx ? accent : `${accent}44`,
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'all .25s ease',
+                  boxShadow: activeCard === idx ? `0 0 8px ${accent}88` : 'none',
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── AI options panel ── */}

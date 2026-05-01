@@ -62,7 +62,8 @@ canvas {
     -webkit-overflow-scrolling: touch;
     justify-content: flex-start !important;
     padding-top: calc(72px + var(--safe-top)) !important;
-    padding-bottom: calc(24px + var(--safe-bottom)) !important;
+    /* 96px clears iOS Safari's ~49px bottom toolbar + home indicator */
+    padding-bottom: calc(96px + var(--safe-bottom)) !important;
   }
 
   /* Horizontal swipe carousel — one card snaps per swipe */

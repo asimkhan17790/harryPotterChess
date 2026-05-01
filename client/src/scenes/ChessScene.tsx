@@ -29,13 +29,7 @@ CustomEase.create('pickup', 'M0,0 C0.1,-0.08,0.3,0.04,0.5,0.3 C0.7,0.56,0.85,1.0
 CustomEase.create('land', 'M0,0 C0.2,0,0.5,0.9,0.7,1.02 C0.85,1.05,0.95,0.98,1,1');
 // Slam: violent deceleration into hard stop (capture moves)
 CustomEase.create('slam', 'M0,0 C0.05,0,0.2,1.03,0.4,1.05 C0.6,1.07,0.8,0.99,1,1');
-import {
-  OrbitControls,
-  Environment,
-  ContactShadows,
-  Sparkles,
-  MeshReflectorMaterial,
-} from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows, Sparkles } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -203,7 +197,7 @@ function ChessBoard({
             <meshStandardMaterial color={theme.lightTile} roughness={0.15} metalness={0.05} />
           </mesh>
         ) : (
-          // Dark tiles — reflective surface
+          // Dark tiles — env-map reflection; MeshReflectorMaterial was creating 32 FBOs → GPU OOM → black screen
           <mesh
             key={sq}
             position={[x, 0, z]}
@@ -211,24 +205,16 @@ function ChessBoard({
             ref={(m) => {
               if (m) {
                 tileMeshes.current.set(sq, m);
-                // MeshReflectorMaterial replaces material — store it after mount
                 tileMats.current.set(sq, m.material as THREE.MeshStandardMaterial);
               }
             }}
           >
             <boxGeometry args={[0.97, 0.05, 0.97]} />
-            <MeshReflectorMaterial
+            <meshStandardMaterial
               color={theme.darkTile}
               roughness={0.08}
-              metalness={0.15}
-              mirror={0.4}
-              blur={IS_MOBILE ? [0, 0] : [200, 100]}
-              resolution={IS_MOBILE ? 64 : 256}
-              mixBlur={0.8}
-              mixStrength={IS_MOBILE ? 0.2 : 0.6}
-              depthScale={0}
-              minDepthThreshold={0.9}
-              maxDepthThreshold={1}
+              metalness={0.5}
+              envMapIntensity={0.6}
             />
           </mesh>
         ),

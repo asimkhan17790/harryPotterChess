@@ -6,6 +6,8 @@ Built with animated 3D wizard piece models, house-themed boards, spell-based spe
 
 ---
 
+## Website Link --> https://harry-potter-chess-client.vercel.app/
+
 ## Features
 
 - **3D animated pieces** rendered with Three.js and real-time lighting

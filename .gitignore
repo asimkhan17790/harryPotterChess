@@ -35,3 +35,8 @@ build/
 .env*.local
 # Added by code-review-graph
 .code-review-graph/
+
+# graphify - keep graph.json and GRAPH_REPORT.md, exclude generated/local files
+graphify-out/obsidian/
+graphify-out/.graphify_python
+graphify-out/cache/

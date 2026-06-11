@@ -85,6 +85,14 @@ function buildLatheGeometry(type: PieceSymbol): THREE.BufferGeometry {
   return geo;
 }
 
+/** Smooth revolve from [radius, y] profile points — robes, towers, plinths. */
+function latheFromPoints(points: [number, number][], segments = 24): THREE.BufferGeometry {
+  const vectors = points.map(([r, y]) => new THREE.Vector2(r, y));
+  const geo = new THREE.LatheGeometry(vectors, segments);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 // ── Rook: armored warrior on octagonal pedestal ──────────────────────────────
 
 /**
@@ -96,6 +104,7 @@ function buildLatheGeometry(type: PieceSymbol): THREE.BufferGeometry {
 export function buildRookGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
   const mat = mats.stone;
   const g = new THREE.Group();
+  const gTrim = new THREE.Group();
 
   const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
     const m = new THREE.Mesh(geo, mat);
@@ -105,68 +114,96 @@ export function buildRookGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
     g.add(m);
     return m;
   };
+  const addT = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mats.trim);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    gTrim.add(m);
+    return m;
+  };
 
   // ── Octagonal stepped base ────────────────────────────────────────────────
   add(new THREE.CylinderGeometry(0.36, 0.38, 0.06, 8), 0, 0.03);
   add(new THREE.CylinderGeometry(0.3, 0.34, 0.055, 8), 0, 0.085);
   add(new THREE.CylinderGeometry(0.25, 0.28, 0.05, 8), 0, 0.135);
 
-  // ── Tower body: tapered cylinder (wide base, narrower top) ───────────────
-  // We approximate the taper with 3 stacked slightly-shrinking cylinders
-  const TOWER_SEGS = 12; // more segments = rounder cross-section
-  add(new THREE.CylinderGeometry(0.22, 0.24, 0.18, TOWER_SEGS), 0, 0.27);
-  add(new THREE.CylinderGeometry(0.2, 0.22, 0.18, TOWER_SEGS), 0, 0.45);
-  add(new THREE.CylinderGeometry(0.19, 0.2, 0.18, TOWER_SEGS), 0, 0.63);
-  add(new THREE.CylinderGeometry(0.18, 0.19, 0.16, TOWER_SEGS), 0, 0.8);
+  // ── Tower body: single smooth lathe with entasis (subtle convex taper) ────
+  // One continuous silhouette instead of stacked cylinders — reads as carved stone
+  add(
+    latheFromPoints(
+      [
+        [0.0, 0.16],
+        [0.245, 0.16],
+        [0.24, 0.2],
+        [0.228, 0.32],
+        [0.215, 0.45],
+        [0.203, 0.58],
+        [0.193, 0.7],
+        [0.187, 0.8],
+        [0.185, 0.86],
+        [0.2, 0.875], // flare into parapet
+        [0.205, 0.95],
+        [0.16, 0.95],
+        [0.16, 0.88],
+        [0.0, 0.88],
+      ],
+      28,
+    ),
+    0,
+    0,
+  );
 
-  // ── Horizontal stonework bands (belt rings every ~0.09 units) ─────────────
-  // Each band is a thin torus-like disc that sticks out slightly
-  const bandY = [0.2, 0.29, 0.38, 0.47, 0.56, 0.65, 0.74, 0.83];
-  const bandR = [0.245, 0.235, 0.225, 0.215, 0.207, 0.2, 0.195, 0.19];
-  for (let i = 0; i < bandY.length; i++) {
+  // ── Metallic banding rings (trim accents replacing stone belt discs) ──────
+  for (const [by, br] of [
+    [0.3, 0.232],
+    [0.55, 0.207],
+    [0.78, 0.19],
+  ] as const) {
+    addT(new THREE.TorusGeometry(br, 0.009, 6, 28), 0, by, 0, Math.PI / 2, 0, 0);
+  }
+
+  // ── Eight merlons (battlements) around the parapet rim ───────────────────
+  const mR = 0.183;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const mx = Math.cos(a) * mR;
+    const mz = Math.sin(a) * mR;
+    const merlon = add(new THREE.BoxGeometry(0.085, 0.1, 0.05), mx, 1.0, mz, 0, -a + Math.PI / 2);
+    merlon.rotation.y = -a + Math.PI / 2;
+  }
+
+  // ── Arrow slits — narrow recessed boxes on the tower face ─────────────────
+  for (const [sy, sa] of [
+    [0.42, 0.35],
+    [0.62, -0.4],
+  ] as const) {
+    const sr = 0.205;
     add(
-      new THREE.CylinderGeometry(bandR[i] + 0.018, bandR[i] + 0.018, 0.022, TOWER_SEGS),
+      new THREE.BoxGeometry(0.025, 0.09, 0.02),
+      Math.cos(sa) * sr,
+      sy,
+      Math.sin(sa) * sr,
       0,
-      bandY[i],
+      -sa + Math.PI / 2,
     );
   }
 
-  // ── Parapet wall (top ring, thicker) ─────────────────────────────────────
-  add(new THREE.CylinderGeometry(0.195, 0.195, 0.07, TOWER_SEGS), 0, 0.915);
-
-  // ── Four corner merlons (battlements) ────────────────────────────────────
-  // Positioned at cardinal + diagonal corners around the parapet
-  const merlonAngles = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
-  const mR = 0.185;
-  for (const a of merlonAngles) {
-    const mx = Math.cos(a) * mR;
-    const mz = Math.sin(a) * mR;
-    // Merlon block
-    add(new THREE.BoxGeometry(0.1, 0.12, 0.1), mx, 0.98, mz);
-    // Crenellation notch cut suggestion — a smaller box on top
-    add(new THREE.BoxGeometry(0.06, 0.06, 0.06), mx, 1.01, mz);
-  }
-
-  // ── Interior parapet floor ────────────────────────────────────────────────
-  add(new THREE.CylinderGeometry(0.16, 0.16, 0.025, TOWER_SEGS), 0, 0.892);
-
-  // ── Armored knight standing on parapet ───────────────────────────────────
+  // ── Armored knight standing on parapet (rounded sculpted forms) ───────────
   // Legs / lower body
-  add(new THREE.CylinderGeometry(0.055, 0.07, 0.14, 8), 0, 0.975);
-  // Torso — broad plate
-  add(new THREE.BoxGeometry(0.2, 0.22, 0.16), 0, 1.12, 0.0);
-  // Back plate
-  add(new THREE.BoxGeometry(0.17, 0.18, 0.06), 0, 1.12, -0.09);
+  add(new THREE.CylinderGeometry(0.055, 0.07, 0.14, 12), 0, 0.975);
+  // Torso — rounded cuirass instead of a box
+  add(new THREE.SphereGeometry(0.115, 16, 12).scale(0.95, 1.05, 0.78), 0, 1.12, 0.0);
   // Pauldron left
-  add(new THREE.SphereGeometry(0.062, 7, 6), -0.12, 1.21, 0.0);
+  add(new THREE.SphereGeometry(0.062, 10, 8), -0.12, 1.21, 0.0);
   // Pauldron right
-  add(new THREE.SphereGeometry(0.062, 7, 6), 0.12, 1.21, 0.0);
+  add(new THREE.SphereGeometry(0.062, 10, 8), 0.12, 1.21, 0.0);
 
   // ── Left arm — holding large kite shield ─────────────────────────────────
-  add(new THREE.CylinderGeometry(0.036, 0.044, 0.17, 7), -0.155, 1.12, 0.02, 0, 0, 0.7);
+  add(new THREE.CapsuleGeometry(0.038, 0.11, 4, 10), -0.155, 1.12, 0.02, 0, 0, 0.7);
   // Shield face (kite shape — cylinder for face + cone for lower point)
   add(
-    new THREE.CylinderGeometry(0.175, 0.175, 0.022, 12),
+    new THREE.CylinderGeometry(0.175, 0.175, 0.022, 18),
     -0.275,
     1.1,
     -0.02,
@@ -174,35 +211,43 @@ export function buildRookGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
     0,
     0.15,
   );
-  add(new THREE.ConeGeometry(0.09, 0.13, 4), -0.275, 0.945, -0.02, 0, 0, Math.PI);
-  // Shield emblem cross bar
-  add(new THREE.BoxGeometry(0.14, 0.016, 0.016), -0.275, 1.1, -0.035);
-  add(new THREE.BoxGeometry(0.016, 0.12, 0.016), -0.275, 1.1, -0.035);
-  // Shield rim
-  add(new THREE.TorusGeometry(0.17, 0.013, 5, 14), -0.275, 1.1, -0.02, Math.PI / 2, 0, 0.15);
+  add(new THREE.ConeGeometry(0.09, 0.13, 8), -0.275, 0.945, -0.02, 0, 0, Math.PI);
+  // Shield emblem cross — metallic trim
+  addT(new THREE.BoxGeometry(0.14, 0.016, 0.016), -0.275, 1.1, -0.035);
+  addT(new THREE.BoxGeometry(0.016, 0.12, 0.016), -0.275, 1.1, -0.035);
+  // Shield rim — metallic trim
+  addT(new THREE.TorusGeometry(0.17, 0.013, 6, 22), -0.275, 1.1, -0.02, Math.PI / 2, 0, 0.15);
 
   // ── Right arm — extended forward pointing / holding sword ────────────────
-  add(new THREE.CylinderGeometry(0.036, 0.044, 0.18, 7), 0.14, 1.16, 0.02, 0, 0, -0.5);
-  add(new THREE.CylinderGeometry(0.028, 0.036, 0.16, 7), 0.21, 1.09, 0.04, 0, 0, -0.9);
+  add(new THREE.CapsuleGeometry(0.038, 0.12, 4, 10), 0.14, 1.16, 0.02, 0, 0, -0.5);
+  add(new THREE.CapsuleGeometry(0.03, 0.1, 4, 10), 0.21, 1.09, 0.04, 0, 0, -0.9);
   // Gauntlet fist
-  add(new THREE.SphereGeometry(0.038, 6, 5), 0.255, 1.0, 0.06);
-  // Sword — thin blade extending forward from fist
-  add(new THREE.BoxGeometry(0.016, 0.016, 0.35), 0.26, 0.99, 0.23);
+  add(new THREE.SphereGeometry(0.038, 10, 8), 0.255, 1.0, 0.06);
+  // Sword — metallic blade extending forward from fist
+  addT(new THREE.BoxGeometry(0.016, 0.016, 0.35), 0.26, 0.99, 0.23);
   // Crossguard
-  add(new THREE.BoxGeometry(0.085, 0.012, 0.012), 0.26, 0.99, 0.06);
+  addT(new THREE.BoxGeometry(0.085, 0.012, 0.012), 0.26, 0.99, 0.06);
 
   // ── Helmet ────────────────────────────────────────────────────────────────
-  add(new THREE.CylinderGeometry(0.06, 0.072, 0.048, 9), 0, 1.255);
-  add(new THREE.SphereGeometry(0.088, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.58), 0, 1.31, 0.01);
-  add(new THREE.CylinderGeometry(0.108, 0.104, 0.022, 10), 0, 1.263);
-  add(new THREE.BoxGeometry(0.082, 0.06, 0.018), 0, 1.278, 0.088);
-  add(new THREE.BoxGeometry(0.058, 0.011, 0.01), 0, 1.284, 0.097);
+  add(new THREE.CylinderGeometry(0.06, 0.072, 0.048, 12), 0, 1.255);
+  add(new THREE.SphereGeometry(0.088, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.58), 0, 1.31, 0.01);
+  add(new THREE.CylinderGeometry(0.108, 0.104, 0.022, 16), 0, 1.263);
+  // Curved face guard
+  add(
+    new THREE.CylinderGeometry(0.08, 0.08, 0.06, 10, 1, true, -Math.PI / 3, Math.PI / 1.5),
+    0,
+    1.278,
+    0.01,
+  );
+  // Visor slit — trim accent
+  addT(new THREE.BoxGeometry(0.058, 0.011, 0.01), 0, 1.284, 0.09);
   // Crest
-  add(new THREE.ConeGeometry(0.014, 0.075, 6), 0, 1.41, 0.0);
+  addT(new THREE.ConeGeometry(0.014, 0.075, 8), 0, 1.41, 0.0);
 
   // Apply facing before merge
   g.rotation.y = facingAngleY;
-  return mergeGroupToSingleMesh(g, mat);
+  gTrim.rotation.y = facingAngleY;
+  return mergeStoneAndTrim(g, gTrim, mats);
 }
 
 // ── House crest colors for king's shield ─────────────────────────────────────
@@ -941,34 +986,38 @@ export function buildPawnGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
   // ── Seat / platform the figure sits on ───────────────────────────────────
   add(new THREE.CylinderGeometry(0.24, 0.25, 0.04, 8), 0, 0.236);
 
-  // ── Lower body: crouching legs / greaves ──────────────────────────────────
-  // Wide hunched thigh block
-  add(new THREE.BoxGeometry(0.28, 0.12, 0.22), 0, 0.32, 0.02);
+  // ── Lower body: crouching legs / greaves (rounded sculpted masses) ────────
+  // Hunched lap — wide flattened ellipsoid instead of a box
+  add(new THREE.SphereGeometry(0.15, 16, 12).scale(1.0, 0.62, 0.85), 0, 0.325, 0.03);
   // Left knee guard (rounded lump forward)
-  add(new THREE.SphereGeometry(0.068, 8, 6), -0.08, 0.32, 0.12);
+  add(new THREE.SphereGeometry(0.068, 12, 10), -0.08, 0.32, 0.13);
   // Right knee guard
-  add(new THREE.SphereGeometry(0.068, 8, 6), 0.08, 0.32, 0.12);
-  // Greave shins angled down (two cylinders)
-  add(new THREE.CylinderGeometry(0.048, 0.055, 0.13, 7), -0.085, 0.235, 0.12, 0.55, 0, 0);
-  add(new THREE.CylinderGeometry(0.048, 0.055, 0.13, 7), 0.085, 0.235, 0.12, 0.55, 0, 0);
+  add(new THREE.SphereGeometry(0.068, 12, 10), 0.08, 0.32, 0.13);
+  // Greave shins angled down (capsules read more organic than cylinders)
+  add(new THREE.CapsuleGeometry(0.05, 0.1, 4, 10), -0.085, 0.235, 0.12, 0.55, 0, 0);
+  add(new THREE.CapsuleGeometry(0.05, 0.1, 4, 10), 0.085, 0.235, 0.12, 0.55, 0, 0);
 
-  // ── Torso: hunched forward, broad chest plate ─────────────────────────────
-  add(new THREE.BoxGeometry(0.26, 0.22, 0.2), 0, 0.48, 0.0);
-  // Back hump (armour hump / cloak)
-  add(new THREE.BoxGeometry(0.22, 0.18, 0.1), 0, 0.49, -0.1);
+  // ── Torso: hunched forward, rounded chest + cloaked back hump ─────────────
+  // Chest — forward-tilted ellipsoid
+  add(new THREE.SphereGeometry(0.15, 16, 12).scale(0.95, 0.8, 0.72), 0, 0.485, 0.01, 0.18, 0, 0);
+  // Back hump (cloak over hunched shoulders)
+  add(new THREE.SphereGeometry(0.13, 14, 10).scale(0.9, 0.78, 0.7), 0, 0.51, -0.07, -0.3, 0, 0);
   // Belt / waist cinch
-  add(new THREE.CylinderGeometry(0.13, 0.15, 0.04, 8), 0, 0.375);
+  add(new THREE.CylinderGeometry(0.13, 0.15, 0.04, 12), 0, 0.375);
+  // Pauldrons — small rounded shoulder caps
+  add(new THREE.SphereGeometry(0.055, 10, 8), -0.125, 0.565, 0.01);
+  add(new THREE.SphereGeometry(0.055, 10, 8), 0.125, 0.565, 0.01);
 
-  // ── Left arm: reaches forward resting on sword ────────────────────────────
-  add(new THREE.CylinderGeometry(0.042, 0.052, 0.19, 7), -0.16, 0.49, 0.04, 0, 0, 0.8);
-  add(new THREE.CylinderGeometry(0.034, 0.042, 0.17, 7), -0.24, 0.4, 0.08, 0, 0, 1.1);
+  // ── Left arm: reaches forward resting on sword (capsule limbs) ────────────
+  add(new THREE.CapsuleGeometry(0.044, 0.13, 4, 10), -0.16, 0.49, 0.04, 0, 0, 0.8);
+  add(new THREE.CapsuleGeometry(0.036, 0.11, 4, 10), -0.24, 0.4, 0.08, 0, 0, 1.1);
   // Gauntlet fist
-  add(new THREE.SphereGeometry(0.04, 7, 6), -0.255, 0.305, 0.1);
+  add(new THREE.SphereGeometry(0.04, 10, 8), -0.255, 0.305, 0.1);
 
   // ── Right arm: angled across chest gripping sword ─────────────────────────
-  add(new THREE.CylinderGeometry(0.042, 0.052, 0.19, 7), 0.15, 0.49, 0.04, 0, 0, -0.7);
-  add(new THREE.CylinderGeometry(0.034, 0.042, 0.17, 7), 0.2, 0.39, 0.08, 0, 0, -1.1);
-  add(new THREE.SphereGeometry(0.04, 7, 6), 0.215, 0.28, 0.1);
+  add(new THREE.CapsuleGeometry(0.044, 0.13, 4, 10), 0.15, 0.49, 0.04, 0, 0, -0.7);
+  add(new THREE.CapsuleGeometry(0.036, 0.11, 4, 10), 0.2, 0.39, 0.08, 0, 0, -1.1);
+  add(new THREE.SphereGeometry(0.04, 10, 8), 0.215, 0.28, 0.1);
 
   // ── Sword held horizontally across the knees (metallic trim) ──────────────
   // Blade — long thin box running left to right
@@ -980,15 +1029,22 @@ export function buildPawnGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
 
   // ── Helmet: wide rounded war-helm, hunched forward ────────────────────────
   // Neck / gorget
-  add(new THREE.CylinderGeometry(0.075, 0.09, 0.055, 9), 0, 0.635);
-  // Helm dome (slightly forward-tilted sphere)
-  add(new THREE.SphereGeometry(0.105, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.58), 0, 0.695, 0.01);
+  add(new THREE.CylinderGeometry(0.075, 0.09, 0.055, 14), 0, 0.635);
+  // Helm dome (slightly forward-tilted sphere, high segment count)
+  add(new THREE.SphereGeometry(0.105, 18, 14, 0, Math.PI * 2, 0, Math.PI * 0.58), 0, 0.695, 0.01);
   // Wide brim / neckguard flange
-  add(new THREE.CylinderGeometry(0.135, 0.128, 0.025, 10), 0, 0.648);
-  // Face guard — flat plate with slight forward offset
-  add(new THREE.BoxGeometry(0.1, 0.075, 0.022), 0, 0.668, 0.098);
-  // Visor slit
-  add(new THREE.BoxGeometry(0.072, 0.014, 0.012), 0, 0.675, 0.108);
+  add(new THREE.CylinderGeometry(0.135, 0.128, 0.025, 16), 0, 0.648);
+  // Brim trim band — thin metallic ring around the helm
+  addT(new THREE.TorusGeometry(0.131, 0.008, 6, 20), 0, 0.66, 0, Math.PI / 2, 0, 0);
+  // Face guard — curved plate (cylinder slice) instead of a flat box
+  add(
+    new THREE.CylinderGeometry(0.095, 0.095, 0.075, 12, 1, true, -Math.PI / 3, Math.PI / 1.5),
+    0,
+    0.668,
+    0.01,
+  );
+  // Visor slit — metallic trim accent
+  addT(new THREE.BoxGeometry(0.072, 0.012, 0.012), 0, 0.675, 0.102);
 
   g.rotation.y = facingAngleY;
   gTrim.rotation.y = facingAngleY;

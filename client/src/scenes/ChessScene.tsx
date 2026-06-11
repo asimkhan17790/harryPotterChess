@@ -49,7 +49,6 @@ import { createCaptureEffect } from '../effects/index';
 import type { CaptureEffect } from '../effects/index';
 import { createPieceGroup, disposePieceGroup } from '../geometry/PieceFactory';
 import type { RimUniforms } from '../geometry/PieceFactory';
-import { onModelsReady } from '../geometry/gltfPieceCache';
 import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
 
@@ -647,12 +646,6 @@ function GameLogic({
   const theme = HOUSE_THEMES[house];
   const { scene, camera, gl } = useThree();
 
-  // Incremented when GLTF models finish loading — forces piece useEffect to re-run
-  const [modelsVersion, setModelsVersion] = useState(0);
-  useEffect(() => {
-    onModelsReady(() => setModelsVersion((v) => v + 1));
-  }, []);
-
   // Reset game history state when a new game mounts
   useEffect(() => {
     const store = useGameStore.getState();
@@ -688,7 +681,9 @@ function GameLogic({
   const checkKingSquareRef = useRef<Square | null>(null);
   // Tracks piece meshes that have been colour-tinted for highlights, so we can restore them.
   // We clone the material before tinting so shared material instances are not mutated globally.
-  const tintedMeshes = useRef<{ mesh: THREE.Mesh; origMat: THREE.MeshStandardMaterial }[]>([]);
+  const tintedMeshes = useRef<{ mesh: THREE.Mesh; origEmissive: number; origIntensity: number }[]>(
+    [],
+  );
 
   // ── Camera helpers ─────────────────────────────────────────────────────────
 
@@ -847,25 +842,28 @@ function GameLogic({
       pm.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [house, modelsVersion]); // rebuild pieces when house changes or GLTFs finish loading
+  }, [house]); // rebuild pieces when house changes
 
   // ── Highlight helpers ──────────────────────────────────────────────────────
 
-  // Tint all standard meshes in a piece group to a target colour.
-  // Clones the material per-mesh so shared material instances are not globally mutated.
+  // Glow-tint all meshes in a piece group via emissive.
+  // NEVER clone these materials: Material.clone() drops onBeforeCompile,
+  // which would strip the injected marble/rim shader. Each piece owns its
+  // material instances, so mutating emissive is safe and per-piece.
   const tintPiece = useCallback(
-    (pieceObj: PieceObject, color: number, emissive: number, emissiveIntensity: number) => {
+    (pieceObj: PieceObject, color: number, _emissive: number, emissiveIntensity: number) => {
       pieceObj.traverse((child) => {
         if (!(child instanceof THREE.Mesh)) return;
-        const origMat = child.material as THREE.MeshStandardMaterial;
-        if (!origMat.color) return;
-        const cloned = origMat.clone();
-        cloned.color.setHex(color);
-        cloned.emissive.setHex(emissive);
-        cloned.emissiveIntensity = emissiveIntensity;
-        cloned.needsUpdate = true;
-        child.material = cloned;
-        tintedMeshes.current.push({ mesh: child, origMat });
+        const mat = child.material as THREE.MeshStandardMaterial;
+        if (!mat.emissive) return;
+        tintedMeshes.current.push({
+          mesh: child,
+          origEmissive: mat.emissive.getHex(),
+          origIntensity: mat.emissiveIntensity,
+        });
+        // Use the highlight colour as the glow hue — stone diffuse stays untouched
+        mat.emissive.setHex(color);
+        mat.emissiveIntensity = Math.max(emissiveIntensity, 0.5);
       });
     },
     [],
@@ -881,10 +879,11 @@ function GameLogic({
     for (const [sq, mat] of tileMats.current) {
       mat.color.setHex(isLightSquare(sq) ? theme.lightTile : theme.darkTile);
     }
-    // Restore original shared material and dispose the per-highlight clone
-    for (const { mesh, origMat } of tintedMeshes.current) {
-      (mesh.material as THREE.MeshStandardMaterial).dispose();
-      mesh.material = origMat;
+    // Restore original emissive values (materials are never cloned/swapped)
+    for (const { mesh, origEmissive, origIntensity } of tintedMeshes.current) {
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      mat.emissive.setHex(origEmissive);
+      mat.emissiveIntensity = origIntensity;
     }
     tintedMeshes.current.length = 0;
     // Reset rim glow on all pieces
@@ -1299,15 +1298,16 @@ function GameLogic({
     });
   }, [aiColor, engineReady, requestMove, difficulty, executeMove]);
 
-  // When AI plays white it must move first; fire after engine is ready and pieces loaded
+  // When AI plays white it must move first; fire after engine is ready
+  // (pieces are placed synchronously in the initial-placement effect)
   useEffect(() => {
-    if (aiColor === 'w' && engineReady && modelsVersion > 0) {
+    if (aiColor === 'w' && engineReady) {
       const t = setTimeout(() => {
         triggerAiMove();
       }, 800);
       return () => clearTimeout(t);
     }
-  }, [aiColor, engineReady, modelsVersion, triggerAiMove]);
+  }, [aiColor, engineReady, triggerAiMove]);
 
   // ── Pointer interaction ────────────────────────────────────────────────────
 
@@ -2412,14 +2412,27 @@ export default function ChessScene() {
             antialias: true,
             alpha: true,
             toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 0.65,
+            toneMappingExposure: 0.8,
           }}
           dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
           performance={{ min: 0.5 }}
         >
-          {/* Lighting — intentionally dim; candles provide most of the fill */}
+          {/* Lighting — dim ambient; raking key light casts real piece shadows */}
           <ambientLight intensity={0.35} color={0xfff0d0} />
-          <directionalLight position={[5, 22, 5]} intensity={1.1} />
+          <directionalLight
+            position={[6, 14, 6]}
+            intensity={1.15}
+            castShadow
+            shadow-mapSize={IS_MOBILE ? [1024, 1024] : [2048, 2048]}
+            shadow-camera-left={-6}
+            shadow-camera-right={6}
+            shadow-camera-top={6}
+            shadow-camera-bottom={-6}
+            shadow-camera-near={1}
+            shadow-camera-far={40}
+            shadow-bias={-0.0005}
+            shadow-normalBias={0.02}
+          />
           <directionalLight position={[-5, 6, -8]} intensity={0.4} color={0xaabbff} />
 
           {/* HDRI — apartment preset is dark, good for candlelit mood */}

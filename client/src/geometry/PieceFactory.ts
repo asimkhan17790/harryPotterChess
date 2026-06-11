@@ -11,6 +11,10 @@ import { mergeBufferGeometries } from 'three-stdlib';
 import type { Color, PieceSymbol } from 'chess.js';
 import { PIECE_PROFILES } from './chessPieceProfiles';
 import type { HouseName } from '../../../shared/src/index';
+import { createStoneMaterial } from './pieceMaterials';
+import type { RimUniforms } from './pieceMaterials';
+
+export type { RimUniforms } from './pieceMaterials';
 
 // ── Geometry merge helper ─────────────────────────────────────────────────────
 
@@ -46,29 +50,6 @@ function mergeGroupToSingleMesh(group: THREE.Group, mat: THREE.MeshStandardMater
   }
   return result;
 }
-
-// ── Material configs ─────────────────────────────────────────────────────────
-
-interface MaterialConfig {
-  color: number;
-  roughness: number;
-  metalness: number;
-  envMapIntensity: number;
-}
-
-// White pieces are always ivory/cream — house accent is the subtle tint on black pieces only.
-const BASE_MATERIALS: Record<'w' | 'b', MaterialConfig> = {
-  w: { color: 0xf0ece0, roughness: 0.2, metalness: 0.65, envMapIntensity: 1.4 },
-  b: { color: 0x111111, roughness: 0.2, metalness: 0.85, envMapIntensity: 1.8 },
-};
-
-// Applied only to BLACK pieces to give them a house-flavoured dark tint.
-const HOUSE_OVERRIDES_BLACK: Record<HouseName, Partial<MaterialConfig>> = {
-  gryffindor: { color: 0x3a0000, metalness: 0.75, roughness: 0.25 },
-  slytherin: { color: 0x001a00, metalness: 0.9, roughness: 0.15 },
-  ravenclaw: { color: 0x00002a, metalness: 0.8, roughness: 0.2 },
-  hufflepuff: { color: 0x1a1400, metalness: 0.7, roughness: 0.3 },
-};
 
 // ── Geometry helpers ─────────────────────────────────────────────────────────
 
@@ -941,48 +922,6 @@ export function buildPawnGroup(mat: THREE.MeshStandardMaterial, facingAngleY = 0
   return mergeGroupToSingleMesh(g, mat);
 }
 
-// ── Rim light shader injection ────────────────────────────────────────────────
-
-export interface RimUniforms {
-  uRimColor: { value: THREE.Color };
-  uRimIntensity: { value: number };
-}
-
-/**
- * Injects a Fresnel rim-light term into a MeshStandardMaterial via
- * onBeforeCompile. Returns the uniform handles so the caller can animate them.
- */
-function injectRimLight(mat: THREE.MeshStandardMaterial): RimUniforms {
-  const uniforms: RimUniforms = {
-    uRimColor: { value: new THREE.Color(0x4488ff) },
-    uRimIntensity: { value: 0.0 },
-  };
-
-  mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uRimColor = uniforms.uRimColor;
-    shader.uniforms.uRimIntensity = uniforms.uRimIntensity;
-
-    // Declare uniforms at top of fragment shader
-    shader.fragmentShader =
-      `uniform vec3 uRimColor;\nuniform float uRimIntensity;\n` + shader.fragmentShader;
-
-    shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <dithering_fragment>',
-      `
-      // Fresnel rim light
-      vec3 rimViewDir = normalize(vViewPosition);
-      float rim = 1.0 - max(dot(rimViewDir, normalize(vNormal)), 0.0);
-      rim = pow(rim, 3.0);
-      outgoingLight += uRimColor * rim * uRimIntensity;
-      #include <dithering_fragment>
-      `,
-    );
-  };
-  // needsUpdate so the patched shader is recompiled
-  mat.needsUpdate = true;
-  return uniforms;
-}
-
 // ── Public factory ────────────────────────────────────────────────────────────
 
 /**
@@ -995,20 +934,9 @@ export function createPieceGroup(
   house: HouseName | null = null,
   envMap: THREE.Texture | null = null,
 ): { group: THREE.Group; rimUniforms: RimUniforms } {
-  const base = { ...BASE_MATERIALS[side] };
-  // Only tint black pieces with the house colour; white stays ivory.
-  if (side === 'b' && house && HOUSE_OVERRIDES_BLACK[house]) {
-    Object.assign(base, HOUSE_OVERRIDES_BLACK[house]);
-  }
-
-  const mat = new THREE.MeshStandardMaterial({
-    color: base.color,
-    roughness: base.roughness,
-    metalness: base.metalness,
-    envMap: envMap ?? undefined,
-    envMapIntensity: base.envMapIntensity,
-  });
-  const rimUniforms = injectRimLight(mat);
+  // Carved stone body: marble (white) / obsidian (black, house-tinted veins).
+  // Marble + weathering + rim Fresnel all live in one shader injection.
+  const { material: mat, rimUniforms } = createStoneMaterial(side, house, envMap);
 
   // ── Character pieces always use custom composite builders ────────────────
   // These are HP wizard chess figures — not replaceable by generic Staunton GLBs.

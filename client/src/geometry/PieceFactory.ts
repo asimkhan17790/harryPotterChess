@@ -11,10 +11,16 @@ import { mergeBufferGeometries } from 'three-stdlib';
 import type { Color, PieceSymbol } from 'chess.js';
 import { PIECE_PROFILES } from './chessPieceProfiles';
 import type { HouseName } from '../../../shared/src/index';
-import { createStoneMaterial } from './pieceMaterials';
+import { createStoneMaterial, createTrimMaterial } from './pieceMaterials';
 import type { RimUniforms } from './pieceMaterials';
 
 export type { RimUniforms } from './pieceMaterials';
+
+/** The two materials every piece is sculpted from: carved stone + metallic trim. */
+export interface PieceMats {
+  stone: THREE.MeshStandardMaterial;
+  trim: THREE.MeshStandardMaterial;
+}
 
 // ── Geometry merge helper ─────────────────────────────────────────────────────
 
@@ -51,6 +57,24 @@ function mergeGroupToSingleMesh(group: THREE.Group, mat: THREE.MeshStandardMater
   return result;
 }
 
+/**
+ * Merges the stone group and the trim group separately (one draw call per
+ * material) and returns a single Group containing both meshes.
+ * Skips the trim merge when the trim group is empty.
+ */
+function mergeStoneAndTrim(gStone: THREE.Group, gTrim: THREE.Group, mats: PieceMats): THREE.Group {
+  const result = mergeGroupToSingleMesh(gStone, mats.stone);
+  let hasTrim = false;
+  gTrim.traverse((c) => {
+    if (c instanceof THREE.Mesh) hasTrim = true;
+  });
+  if (hasTrim) {
+    const trimMerged = mergeGroupToSingleMesh(gTrim, mats.trim);
+    for (const c of [...trimMerged.children]) result.add(c);
+  }
+  return result;
+}
+
 // ── Geometry helpers ─────────────────────────────────────────────────────────
 
 function buildLatheGeometry(type: PieceSymbol): THREE.BufferGeometry {
@@ -69,7 +93,8 @@ function buildLatheGeometry(type: PieceSymbol): THREE.BufferGeometry {
  * parapet pointing forward — HP wizard chess aesthetic.
  * White faces -Z (toward opponent); pass facingAngleY=0 for black.
  */
-export function buildRookGroup(mat: THREE.MeshStandardMaterial, facingAngleY = 0): THREE.Group {
+export function buildRookGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
+  const mat = mats.stone;
   const g = new THREE.Group();
 
   const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
@@ -199,10 +224,11 @@ const HOUSE_SHIELD_COLORS: Record<string, { base: number; accent: number }> = {
  * Shield face is painted in house colours with a cross emblem.
  */
 export function buildKingGroup(
-  mat: THREE.MeshStandardMaterial,
+  mats: PieceMats,
   facingAngleY = 0,
   house: string | null = null,
 ): THREE.Group {
+  const mat = mats.stone;
   const g = new THREE.Group();
 
   const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
@@ -389,16 +415,10 @@ export function buildKingGroup(
     );
   }
 
-  // ── Gold crown band + points ───────────────────────────────────────────────
-  // Use a separate group so gold material can be merged independently
+  // ── Crown band + points (metallic trim material) ──────────────────────────
+  // Use a separate group so trim material can be merged independently
   const gGold = new THREE.Group();
-  const goldMat = new THREE.MeshStandardMaterial({
-    color: 0xffd700,
-    metalness: 0.95,
-    roughness: 0.08,
-    emissive: 0xaa7700,
-    emissiveIntensity: 0.3,
-  });
+  const goldMat = mats.trim;
   const addGold = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
     const m = new THREE.Mesh(geo, goldMat);
     m.position.set(x, y, z);
@@ -503,8 +523,12 @@ export function buildKingGroup(
 }
 
 /** Adds 5 crown spike points around the queen rim. */
-function addQueenCrown(group: THREE.Group, rimY: number, rimR: number): void {
-  const mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.1 });
+function addQueenCrown(
+  group: THREE.Group,
+  rimY: number,
+  rimR: number,
+  mat: THREE.MeshStandardMaterial,
+): void {
   const spikeCount = 5;
   for (let i = 0; i < spikeCount; i++) {
     const angle = (i / spikeCount) * Math.PI * 2;
@@ -522,8 +546,10 @@ function addQueenCrown(group: THREE.Group, rimY: number, rimR: number): void {
  * long layered vestment robes, raised blessing hand, crozier staff with
  * curved crook, and a pointed mitre hat.
  */
-export function buildBishopGroup(mat: THREE.MeshStandardMaterial, facingAngleY = 0): THREE.Group {
+export function buildBishopGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
+  const mat = mats.stone;
   const g = new THREE.Group();
+  const gTrim = new THREE.Group();
 
   const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
     const m = new THREE.Mesh(geo, mat);
@@ -531,6 +557,14 @@ export function buildBishopGroup(mat: THREE.MeshStandardMaterial, facingAngleY =
     m.rotation.set(rx, ry, rz);
     m.castShadow = true;
     g.add(m);
+    return m;
+  };
+  const addT = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mats.trim);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    gTrim.add(m);
     return m;
   };
 
@@ -575,16 +609,25 @@ export function buildBishopGroup(mat: THREE.MeshStandardMaterial, facingAngleY =
   add(new THREE.CylinderGeometry(0.036, 0.044, 0.16, 7), -0.11, 0.75, 0.02, 0, 0, 0.5);
   add(new THREE.CylinderGeometry(0.028, 0.036, 0.12, 7), -0.15, 0.65, 0.03, 0, 0, 0.3);
 
-  // ── Crozier staff (tall vertical rod held in left hand) ───────────────────
+  // ── Crozier staff (gold trim — tall vertical rod held in left hand) ───────
   // Shaft — tall cylinder beside figure
-  add(new THREE.CylinderGeometry(0.016, 0.016, 0.8, 7), -0.21, 0.6, 0.03);
+  addT(new THREE.CylinderGeometry(0.016, 0.016, 0.8, 7), -0.21, 0.6, 0.03);
   // Neck of crook
-  add(new THREE.CylinderGeometry(0.013, 0.016, 0.1, 6), -0.21, 1.01, 0.03, 0, 0, 0.3);
+  addT(new THREE.CylinderGeometry(0.013, 0.016, 0.1, 6), -0.21, 1.01, 0.03, 0, 0, 0.3);
   // The curl — torus segment approximated with a torus
-  add(new THREE.TorusGeometry(0.055, 0.012, 6, 12, Math.PI * 1.5), -0.245, 1.075, 0.03, 0, 0, -0.4);
+  addT(
+    new THREE.TorusGeometry(0.055, 0.012, 6, 12, Math.PI * 1.5),
+    -0.245,
+    1.075,
+    0.03,
+    0,
+    0,
+    -0.4,
+  );
 
   g.rotation.y = facingAngleY;
-  return mergeGroupToSingleMesh(g, mat);
+  gTrim.rotation.y = facingAngleY;
+  return mergeStoneAndTrim(g, gTrim, mats);
 }
 
 // ── Knight: rearing warhorse with armored rider on columned pedestal ─────────
@@ -595,7 +638,8 @@ export function buildBishopGroup(mat: THREE.MeshStandardMaterial, facingAngleY =
  * Structure: hexagonal columned pedestal → rearing horse body → armored rider
  * with lance/sword, large shield on left, spiked armor details.
  */
-export function buildKnightGroup(mat: THREE.MeshStandardMaterial, facingAngleY = 0): THREE.Group {
+export function buildKnightGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
+  const mat = mats.stone;
   const g = new THREE.Group();
 
   const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
@@ -774,20 +818,38 @@ export function buildKnightGroup(mat: THREE.MeshStandardMaterial, facingAngleY =
   swordArm.position.set(0.14, 0.99, 0.02); // shoulder pivot in model space
   swordArm.userData.role = 'swordArm';
 
-  const addArm = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
-    const m = new THREE.Mesh(geo, mat);
-    m.position.set(x - 0.14, y - 0.99, z - 0.02); // offset relative to pivot
-    m.rotation.set(rx, ry, rz);
-    m.castShadow = true;
-    swordArm.add(m);
+  const addArm = (
+    geo: THREE.BufferGeometry,
+    x = 0,
+    y = 0,
+    z = 0,
+    rx = 0,
+    ry = 0,
+    rz = 0,
+    m: THREE.MeshStandardMaterial = mat,
+  ) => {
+    const mesh = new THREE.Mesh(geo, m);
+    mesh.position.set(x - 0.14, y - 0.99, z - 0.02); // offset relative to pivot
+    mesh.rotation.set(rx, ry, rz);
+    mesh.castShadow = true;
+    swordArm.add(mesh);
   };
 
   addArm(new THREE.CylinderGeometry(0.038, 0.046, 0.2, 7), 0.14, 0.99, 0.02, 0, 0, -0.6);
   addArm(new THREE.CylinderGeometry(0.03, 0.038, 0.18, 7), 0.22, 0.88, 0.02, 0, 0, -1.1);
-  // Lance
-  addArm(new THREE.CylinderGeometry(0.014, 0.018, 0.7, 7), 0.3, 1.1, 0.05, 0.0, 0, -1.45);
+  // Lance (metallic trim — swordArm meshes stay unmerged, so per-mesh material is fine)
+  addArm(
+    new THREE.CylinderGeometry(0.014, 0.018, 0.7, 7),
+    0.3,
+    1.1,
+    0.05,
+    0.0,
+    0,
+    -1.45,
+    mats.trim,
+  );
   // Lance tip
-  addArm(new THREE.ConeGeometry(0.02, 0.07, 6), 0.647, 1.142, 0.05, 0.0, 0, -1.45);
+  addArm(new THREE.ConeGeometry(0.02, 0.07, 6), 0.647, 1.142, 0.05, 0.0, 0, -1.45, mats.trim);
 
   // ── Rider helmet ─────────────────────────────────────────────────────────
   // Gorget
@@ -834,8 +896,10 @@ export function buildKnightGroup(mat: THREE.MeshStandardMaterial, facingAngleY =
  * pedestal supported by 6 short columns — matching the HP wizard chess aesthetic
  * from the reference images (hunched forward, helmet, sword held across knees).
  */
-export function buildPawnGroup(mat: THREE.MeshStandardMaterial, facingAngleY = 0): THREE.Group {
+export function buildPawnGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
+  const mat = mats.stone;
   const g = new THREE.Group();
+  const gTrim = new THREE.Group();
 
   const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
     const m = new THREE.Mesh(geo, mat);
@@ -843,6 +907,14 @@ export function buildPawnGroup(mat: THREE.MeshStandardMaterial, facingAngleY = 0
     m.rotation.set(rx, ry, rz);
     m.castShadow = true;
     g.add(m);
+    return m;
+  };
+  const addT = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mats.trim);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    gTrim.add(m);
     return m;
   };
 
@@ -898,13 +970,13 @@ export function buildPawnGroup(mat: THREE.MeshStandardMaterial, facingAngleY = 0
   add(new THREE.CylinderGeometry(0.034, 0.042, 0.17, 7), 0.2, 0.39, 0.08, 0, 0, -1.1);
   add(new THREE.SphereGeometry(0.04, 7, 6), 0.215, 0.28, 0.1);
 
-  // ── Sword held horizontally across the knees ─────────────────────────────
+  // ── Sword held horizontally across the knees (metallic trim) ──────────────
   // Blade — long thin box running left to right
-  add(new THREE.BoxGeometry(0.42, 0.016, 0.012), 0, 0.285, 0.11);
+  addT(new THREE.BoxGeometry(0.42, 0.016, 0.012), 0, 0.285, 0.11);
   // Crossguard
-  add(new THREE.BoxGeometry(0.06, 0.012, 0.06), -0.12, 0.285, 0.11);
+  addT(new THREE.BoxGeometry(0.06, 0.012, 0.06), -0.12, 0.285, 0.11);
   // Pommel
-  add(new THREE.SphereGeometry(0.022, 6, 5), -0.215, 0.285, 0.11);
+  addT(new THREE.SphereGeometry(0.022, 6, 5), -0.215, 0.285, 0.11);
 
   // ── Helmet: wide rounded war-helm, hunched forward ────────────────────────
   // Neck / gorget
@@ -919,7 +991,8 @@ export function buildPawnGroup(mat: THREE.MeshStandardMaterial, facingAngleY = 0
   add(new THREE.BoxGeometry(0.072, 0.014, 0.012), 0, 0.675, 0.108);
 
   g.rotation.y = facingAngleY;
-  return mergeGroupToSingleMesh(g, mat);
+  gTrim.rotation.y = facingAngleY;
+  return mergeStoneAndTrim(g, gTrim, mats);
 }
 
 // ── Public factory ────────────────────────────────────────────────────────────
@@ -934,31 +1007,35 @@ export function createPieceGroup(
   house: HouseName | null = null,
   envMap: THREE.Texture | null = null,
 ): { group: THREE.Group; rimUniforms: RimUniforms } {
-  // Carved stone body: marble (white) / obsidian (black, house-tinted veins).
-  // Marble + weathering + rim Fresnel all live in one shader injection.
-  const { material: mat, rimUniforms } = createStoneMaterial(side, house, envMap);
+  // Carved stone body: marble (white) / obsidian (black, house-tinted veins),
+  // plus metallic trim (gold / house accent). Marble + weathering + rim Fresnel
+  // all live in one shader injection; both materials share rim uniforms so a
+  // single tween drives the glow on stone and trim together.
+  const { material: stone, rimUniforms } = createStoneMaterial(side, house, envMap);
+  const { material: trim } = createTrimMaterial(side, house, envMap, rimUniforms);
+  const mats: PieceMats = { stone, trim };
 
   // ── Character pieces always use custom composite builders ────────────────
   // These are HP wizard chess figures — not replaceable by generic Staunton GLBs.
   // White pieces face -Z (toward black's side); black pieces face +Z (toward white's side)
   const facing = side === 'w' ? Math.PI : 0;
-  if (type === 'p') return { group: buildPawnGroup(mat, facing), rimUniforms };
-  if (type === 'n') return { group: buildKnightGroup(mat, facing), rimUniforms };
-  if (type === 'r') return { group: buildRookGroup(mat, facing), rimUniforms };
-  if (type === 'k') return { group: buildKingGroup(mat, facing, house), rimUniforms };
-  if (type === 'b') return { group: buildBishopGroup(mat, facing), rimUniforms };
+  if (type === 'p') return { group: buildPawnGroup(mats, facing), rimUniforms };
+  if (type === 'n') return { group: buildKnightGroup(mats, facing), rimUniforms };
+  if (type === 'r') return { group: buildRookGroup(mats, facing), rimUniforms };
+  if (type === 'k') return { group: buildKingGroup(mats, facing, house), rimUniforms };
+  if (type === 'b') return { group: buildBishopGroup(mats, facing), rimUniforms };
 
   const profile = PIECE_PROFILES[type];
   const geo = buildLatheGeometry(type);
 
-  const mesh = new THREE.Mesh(geo, mat);
+  const mesh = new THREE.Mesh(geo, stone);
   mesh.castShadow = true;
   mesh.receiveShadow = false;
 
   const group = new THREE.Group();
   group.add(mesh);
 
-  if (type === 'q') addQueenCrown(group, profile.height, 0.24);
+  if (type === 'q') addQueenCrown(group, profile.height, 0.24, trim);
 
   return { group, rimUniforms };
 }

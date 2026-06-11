@@ -185,8 +185,11 @@ export interface PieceShaderOpts {
 export function injectPieceShader(
   mat: THREE.MeshStandardMaterial,
   opts: PieceShaderOpts = {},
+  sharedRim?: RimUniforms,
 ): RimUniforms {
-  const rim: RimUniforms = {
+  // Sharing rim uniform objects across a piece's stone + trim materials lets
+  // one GSAP tween drive the glow on both.
+  const rim: RimUniforms = sharedRim ?? {
     uRimColor: { value: new THREE.Color(0x4488ff) },
     uRimIntensity: { value: 0.0 },
   };
@@ -249,6 +252,7 @@ export function createStoneMaterial(
   side: Color,
   house: HouseName | null = null,
   envMap: THREE.Texture | null = null,
+  sharedRim?: RimUniforms,
 ): { material: THREE.MeshStandardMaterial; rimUniforms: RimUniforms } {
   const cfg = STONE[side];
   const veinHex = side === 'b' && house ? HOUSE_VEIN_BLACK[house] : cfg.vein;
@@ -260,13 +264,17 @@ export function createStoneMaterial(
     envMap: envMap ?? undefined,
     envMapIntensity: cfg.envMapIntensity,
   });
-  const rimUniforms = injectPieceShader(material, {
-    marble: {
-      veinColor: new THREE.Color(veinHex),
-      veinStrength: cfg.veinStrength,
-      scale: 4.0,
+  const rimUniforms = injectPieceShader(
+    material,
+    {
+      marble: {
+        veinColor: new THREE.Color(veinHex),
+        veinStrength: cfg.veinStrength,
+        scale: 4.0,
+      },
     },
-  });
+    sharedRim,
+  );
   return { material, rimUniforms };
 }
 
@@ -275,6 +283,7 @@ export function createTrimMaterial(
   side: Color,
   house: HouseName | null = null,
   envMap: THREE.Texture | null = null,
+  sharedRim?: RimUniforms,
 ): { material: THREE.MeshStandardMaterial; rimUniforms: RimUniforms } {
   const cfg: TrimConfig =
     side === 'w'
@@ -292,6 +301,6 @@ export function createTrimMaterial(
     envMap: envMap ?? undefined,
     envMapIntensity: 1.2,
   });
-  const rimUniforms = injectPieceShader(material);
+  const rimUniforms = injectPieceShader(material, {}, sharedRim);
   return { material, rimUniforms };
 }

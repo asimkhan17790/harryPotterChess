@@ -305,67 +305,59 @@ export function buildKingGroup(
   // Seat platform
   add(new THREE.CylinderGeometry(0.2, 0.21, 0.038, 8), 0, 0.3);
 
-  // ── Greaved boots / feet ──────────────────────────────────────────────────
-  add(new THREE.BoxGeometry(0.08, 0.12, 0.12), -0.055, 0.378, 0.01);
-  add(new THREE.BoxGeometry(0.08, 0.12, 0.12), 0.055, 0.378, 0.01);
+  // ── Greaved boots / feet — rounded forms ──────────────────────────────────
+  add(new THREE.SphereGeometry(0.06, 12, 10).scale(0.75, 1.0, 1.1), -0.055, 0.385, 0.02);
+  add(new THREE.SphereGeometry(0.06, 12, 10).scale(0.75, 1.0, 1.1), 0.055, 0.385, 0.02);
   // Toe caps
-  add(new THREE.SphereGeometry(0.045, 7, 5), -0.055, 0.365, 0.065);
-  add(new THREE.SphereGeometry(0.045, 7, 5), 0.055, 0.365, 0.065);
+  add(new THREE.SphereGeometry(0.045, 10, 8), -0.055, 0.365, 0.065);
+  add(new THREE.SphereGeometry(0.045, 10, 8), 0.055, 0.365, 0.065);
 
-  // ── Armoured legs ─────────────────────────────────────────────────────────
-  add(new THREE.CylinderGeometry(0.058, 0.068, 0.22, 8), -0.058, 0.516, 0.0);
-  add(new THREE.CylinderGeometry(0.058, 0.068, 0.22, 8), 0.058, 0.516, 0.0);
+  // ── Armoured legs (capsules) ──────────────────────────────────────────────
+  add(new THREE.CapsuleGeometry(0.06, 0.16, 4, 12), -0.058, 0.516, 0.0);
+  add(new THREE.CapsuleGeometry(0.06, 0.16, 4, 12), 0.058, 0.516, 0.0);
   // Knee cops
-  add(new THREE.SphereGeometry(0.06, 8, 6), -0.058, 0.62, 0.012);
-  add(new THREE.SphereGeometry(0.06, 8, 6), 0.058, 0.62, 0.012);
+  add(new THREE.SphereGeometry(0.06, 10, 8), -0.058, 0.62, 0.012);
+  add(new THREE.SphereGeometry(0.06, 10, 8), 0.058, 0.62, 0.012);
   // Upper legs (cuisses)
-  add(new THREE.CylinderGeometry(0.062, 0.07, 0.18, 8), -0.055, 0.72, 0.0);
-  add(new THREE.CylinderGeometry(0.062, 0.07, 0.18, 8), 0.055, 0.72, 0.0);
+  add(new THREE.CapsuleGeometry(0.064, 0.12, 4, 12), -0.055, 0.72, 0.0);
+  add(new THREE.CapsuleGeometry(0.064, 0.12, 4, 12), 0.055, 0.72, 0.0);
 
   // ── Fauld / waist tassets ─────────────────────────────────────────────────
-  add(new THREE.CylinderGeometry(0.155, 0.172, 0.06, 10), 0, 0.812);
+  add(new THREE.CylinderGeometry(0.155, 0.172, 0.06, 16), 0, 0.812);
 
-  // ── Torso: broad plate cuirass ────────────────────────────────────────────
-  add(new THREE.BoxGeometry(0.3, 0.34, 0.22), 0, 0.985, 0.01);
+  // ── Torso: rounded plate cuirass ──────────────────────────────────────────
+  add(new THREE.SphereGeometry(0.17, 18, 14).scale(0.95, 1.12, 0.72), 0, 0.985, 0.01);
   // Breastplate ridge (center line)
-  add(new THREE.BoxGeometry(0.035, 0.28, 0.04), 0, 0.985, 0.11);
-  // Back plate
-  add(new THREE.BoxGeometry(0.26, 0.3, 0.09), 0, 0.98, -0.1);
+  add(new THREE.CapsuleGeometry(0.018, 0.24, 4, 8), 0, 0.985, 0.115);
 
-  // ── Huge billowing cloak ───────────────────────────────────────────────────
-  // The cloak hangs from the shoulders and flows dramatically behind/below.
-  // Built from overlapping curved panels to give a layered, flowing look.
-
-  // Collar / yoke — wide flat panel across shoulder blades
-  add(new THREE.BoxGeometry(0.38, 0.06, 0.06), 0, 1.08, -0.13);
-
-  // Main cloak body — 5 vertical panels of increasing width fanning outward
-  // Each panel is a tapered box (wider at bottom) with a slight backward lean
-  for (let i = 0; i < 5; i++) {
-    const t = (i - 2) / 2; // -1 .. +1 side spread
-    const xOff = t * 0.22;
-    const wTop = 0.09 + Math.abs(t) * 0.04;
-    const wBot = 0.13 + Math.abs(t) * 0.06;
-    // Simulate taper with two stacked boxes (top narrower, bottom wider)
-    add(new THREE.BoxGeometry(wTop, 0.3, 0.055), xOff, 0.92, -0.16 - Math.abs(t) * 0.02);
-    add(new THREE.BoxGeometry(wBot, 0.35, 0.06), xOff, 0.6, -0.17 - Math.abs(t) * 0.03);
-    add(new THREE.BoxGeometry(wBot + 0.04, 0.22, 0.055), xOff, 0.35, -0.17 - Math.abs(t) * 0.04);
+  // ── Billowing cloak — curved half-shell draped from the shoulders ─────────
+  // Single lathe shell (half revolution) replaces the old panel stack: one
+  // continuous flowing surface that flares at the hem and gathers at the collar.
+  {
+    const cloakPts = [
+      new THREE.Vector2(0.36, 0.14), // flared hem
+      new THREE.Vector2(0.33, 0.24),
+      new THREE.Vector2(0.28, 0.42),
+      new THREE.Vector2(0.24, 0.62),
+      new THREE.Vector2(0.21, 0.82),
+      new THREE.Vector2(0.19, 0.98),
+      new THREE.Vector2(0.13, 1.1), // gathers at the collar
+    ];
+    const cloakGeo = new THREE.LatheGeometry(cloakPts, 22, 0, Math.PI);
+    cloakGeo.computeVertexNormals();
+    // Rotate so the open side faces forward — shell drapes around the back
+    add(cloakGeo, 0, 0, -0.03, 0, Math.PI / 2, 0);
+    // Inner liner shell (slightly smaller, flipped so the inside renders)
+    const linerGeo = new THREE.LatheGeometry(
+      cloakPts.map((p) => new THREE.Vector2(p.x - 0.025, p.y)),
+      22,
+      0,
+      Math.PI,
+    );
+    linerGeo.scale(-1, 1, 1);
+    linerGeo.computeVertexNormals();
+    add(linerGeo, 0, 0, -0.03, 0, Math.PI / 2, 0);
   }
-
-  // Lower hem — wide sweeping panel that fans out at ground level
-  add(new THREE.BoxGeometry(0.52, 0.1, 0.06), 0, 0.21, -0.18);
-  add(new THREE.BoxGeometry(0.6, 0.07, 0.055), 0, 0.148, -0.19);
-
-  // Outer wing panels — dramatic wide flanges at the sides of the cloak
-  add(new THREE.BoxGeometry(0.08, 0.55, 0.05), -0.32, 0.65, -0.155, 0, 0, 0.12);
-  add(new THREE.BoxGeometry(0.08, 0.55, 0.05), 0.32, 0.65, -0.155, 0, 0, -0.12);
-
-  // Depth layer — a second set of slightly recessed panels for thickness/volume
-  add(new THREE.BoxGeometry(0.3, 0.7, 0.04), 0, 0.68, -0.21);
-  add(new THREE.BoxGeometry(0.4, 0.3, 0.04), 0, 0.33, -0.21);
-
-  // Interior shadow strip — thin dark-ish (same mat) sliver gives depth illusion
-  add(new THREE.BoxGeometry(0.24, 0.6, 0.018), 0, 0.66, -0.235);
 
   // Rerebraces (upper arm armour) — left
   add(new THREE.CylinderGeometry(0.058, 0.068, 0.2, 8), -0.205, 0.96, 0.0, 0, 0, 0.15);
@@ -385,12 +377,9 @@ export function buildKingGroup(
   add(new THREE.CylinderGeometry(0.04, 0.05, 0.19, 7), -0.095, 0.755, 0.08, 0, 0, 0.55);
   // Vambrace right (mirror)
   add(new THREE.CylinderGeometry(0.04, 0.05, 0.19, 7), 0.095, 0.755, 0.08, 0, 0, -0.55);
-  // Gauntlets
-  add(new THREE.BoxGeometry(0.065, 0.065, 0.07), -0.03, 0.685, 0.1);
-  add(new THREE.BoxGeometry(0.065, 0.065, 0.07), 0.03, 0.685, 0.1);
-  // Knuckle ridges
-  add(new THREE.BoxGeometry(0.055, 0.018, 0.022), -0.03, 0.714, 0.128);
-  add(new THREE.BoxGeometry(0.055, 0.018, 0.022), 0.03, 0.714, 0.128);
+  // Gauntlet fists — rounded
+  add(new THREE.SphereGeometry(0.042, 10, 8).scale(0.95, 0.95, 1.1), -0.03, 0.685, 0.1);
+  add(new THREE.SphereGeometry(0.042, 10, 8).scale(0.95, 0.95, 1.1), 0.03, 0.685, 0.1);
 
   // ── Great-sword planted tip-down in front ─────────────────────────────────
   // Grip (wrapped in gauntlets, centered between hands)

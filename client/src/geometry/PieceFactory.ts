@@ -9,7 +9,6 @@
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three-stdlib';
 import type { Color, PieceSymbol } from 'chess.js';
-import { PIECE_PROFILES } from './chessPieceProfiles';
 import type { HouseName } from '../../../shared/src/index';
 import { createStoneMaterial, createTrimMaterial } from './pieceMaterials';
 import type { RimUniforms } from './pieceMaterials';
@@ -76,14 +75,6 @@ function mergeStoneAndTrim(gStone: THREE.Group, gTrim: THREE.Group, mats: PieceM
 }
 
 // ── Geometry helpers ─────────────────────────────────────────────────────────
-
-function buildLatheGeometry(type: PieceSymbol): THREE.BufferGeometry {
-  const profile = PIECE_PROFILES[type];
-  const vectors = profile.points.map(([r, h]) => new THREE.Vector2(r, h));
-  const geo = new THREE.LatheGeometry(vectors, profile.segments);
-  geo.computeVertexNormals();
-  return geo;
-}
 
 /** Smooth revolve from [radius, y] profile points — robes, towers, plinths. */
 function latheFromPoints(points: [number, number][], segments = 24): THREE.BufferGeometry {
@@ -568,20 +559,106 @@ export function buildKingGroup(
 }
 
 /** Adds 5 crown spike points around the queen rim. */
-function addQueenCrown(
-  group: THREE.Group,
-  rimY: number,
-  rimR: number,
-  mat: THREE.MeshStandardMaterial,
-): void {
-  const spikeCount = 5;
-  for (let i = 0; i < spikeCount; i++) {
-    const angle = (i / spikeCount) * Math.PI * 2;
-    const geo = new THREE.ConeGeometry(0.04, 0.12, 6);
-    const spike = new THREE.Mesh(geo, mat);
-    spike.position.set(Math.cos(angle) * (rimR * 0.8), rimY + 0.06, Math.sin(angle) * (rimR * 0.8));
-    group.add(spike);
+// ── Queen: regal standing figure in a sweeping gown ──────────────────────────
+
+/**
+ * Builds a queen as a tall standing robed figure — sweeping floor-length gown,
+ * fitted bodice, folded arms, veiled head and a spiked gold crown. Second
+ * tallest piece after the king.
+ */
+export function buildQueenGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
+  const mat = mats.stone;
+  const g = new THREE.Group();
+  const gTrim = new THREE.Group();
+
+  const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    g.add(m);
+    return m;
+  };
+  const addT = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mats.trim);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    gTrim.add(m);
+    return m;
+  };
+
+  // ── Octagonal stepped base (shared pedestal language) ─────────────────────
+  add(new THREE.CylinderGeometry(0.32, 0.34, 0.06, 8), 0, 0.03);
+  add(new THREE.CylinderGeometry(0.26, 0.3, 0.055, 8), 0, 0.088);
+  add(new THREE.CylinderGeometry(0.21, 0.24, 0.05, 8), 0, 0.138);
+
+  // ── Sweeping gown — one continuous lathe from hem to shoulders ────────────
+  add(
+    latheFromPoints(
+      [
+        [0.0, 0.16],
+        [0.225, 0.16],
+        [0.228, 0.2], // hem flare
+        [0.2, 0.32],
+        [0.165, 0.46],
+        [0.125, 0.58],
+        [0.095, 0.68], // waist
+        [0.105, 0.76], // bodice
+        [0.108, 0.84],
+        [0.09, 0.92], // bust to shoulders
+        [0.06, 0.97],
+        [0.0, 0.99],
+      ],
+      28,
+    ),
+    0,
+    0,
+  );
+  // Gown waist sash — trim band
+  addT(new THREE.TorusGeometry(0.098, 0.009, 6, 22), 0, 0.69, 0, Math.PI / 2, 0, 0);
+  // Necklace — trim band at the collar
+  addT(new THREE.TorusGeometry(0.062, 0.007, 6, 18), 0, 0.95, 0, Math.PI / 2, 0, 0);
+
+  // ── Folded arms — capsules crossed in front of the bodice ─────────────────
+  add(new THREE.CapsuleGeometry(0.032, 0.12, 4, 10), -0.05, 0.78, 0.085, 0.25, 0, 1.25);
+  add(new THREE.CapsuleGeometry(0.032, 0.12, 4, 10), 0.05, 0.74, 0.09, 0.25, 0, -1.25);
+  // Hands
+  add(new THREE.SphereGeometry(0.028, 10, 8), 0.055, 0.755, 0.1);
+  add(new THREE.SphereGeometry(0.028, 10, 8), -0.055, 0.72, 0.1);
+
+  // ── Head + veil ───────────────────────────────────────────────────────────
+  add(new THREE.SphereGeometry(0.072, 14, 12), 0, 1.06);
+  // Veil — flowing cone draped behind the head down the back
+  add(
+    latheFromPoints(
+      [
+        [0.01, 1.13],
+        [0.075, 1.06],
+        [0.1, 0.95],
+        [0.11, 0.85],
+      ],
+      18,
+    ),
+    0,
+    0,
+    -0.02,
+  );
+
+  // ── Crown — gold band, five points and jewels ─────────────────────────────
+  addT(new THREE.TorusGeometry(0.062, 0.011, 6, 20), 0, 1.115, 0, Math.PI / 2, 0, 0);
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    addT(new THREE.ConeGeometry(0.014, 0.065, 6), Math.cos(a) * 0.055, 1.155, Math.sin(a) * 0.055);
   }
+  for (let i = 0; i < 5; i++) {
+    const a = ((i + 0.5) / 5) * Math.PI * 2;
+    addT(new THREE.SphereGeometry(0.009, 6, 5), Math.cos(a) * 0.062, 1.12, Math.sin(a) * 0.062);
+  }
+
+  g.rotation.y = facingAngleY;
+  gTrim.rotation.y = facingAngleY;
+  return mergeStoneAndTrim(g, gTrim, mats);
 }
 
 // ── Bishop: robed wizard bishop with mitre and crozier ───────────────────────
@@ -618,41 +695,67 @@ export function buildBishopGroup(mats: PieceMats, facingAngleY = 0): THREE.Group
   add(new THREE.CylinderGeometry(0.24, 0.28, 0.055, 8), 0, 0.088); // mid tier
   add(new THREE.CylinderGeometry(0.2, 0.23, 0.05, 8), 0, 0.138); // top platform
 
-  // ── Long outer vestment robe (wide flared cone) ───────────────────────────
-  // Base of robe — widest at hem
-  add(new THREE.CylinderGeometry(0.19, 0.21, 0.36, 10), 0, 0.34);
-  // Upper robe — tapers toward chest
-  add(new THREE.CylinderGeometry(0.14, 0.18, 0.28, 10), 0, 0.6);
-  // Central vestment panel (decorative front slab)
-  add(new THREE.BoxGeometry(0.1, 0.42, 0.03), 0, 0.45, 0.17);
+  // ── Long vestment robe — one smooth lathe, flared hem to narrow chest ─────
+  add(
+    latheFromPoints(
+      [
+        [0.0, 0.16],
+        [0.215, 0.16],
+        [0.218, 0.19], // hem flare
+        [0.2, 0.28],
+        [0.182, 0.42],
+        [0.165, 0.55],
+        [0.148, 0.66],
+        [0.138, 0.74],
+        [0.142, 0.76], // slight collar lip
+        [0.0, 0.78],
+      ],
+      26,
+    ),
+    0,
+    0,
+  );
+  // Central vestment stripe — gold trim panel down the front
+  addT(new THREE.BoxGeometry(0.07, 0.4, 0.02), 0, 0.45, 0.168);
 
-  // ── Shoulder mantle / cape collar ────────────────────────────────────────
-  add(new THREE.CylinderGeometry(0.155, 0.18, 0.06, 10), 0, 0.775); // shoulder cape
+  // ── Shoulder mantle — layered cape lathe over the robe top ────────────────
+  add(
+    latheFromPoints(
+      [
+        [0.16, 0.72],
+        [0.175, 0.74],
+        [0.155, 0.79],
+        [0.12, 0.82],
+        [0.085, 0.835],
+      ],
+      22,
+    ),
+    0,
+    0,
+  );
   // Gorget / neck band
-  add(new THREE.CylinderGeometry(0.075, 0.09, 0.055, 10), 0, 0.835);
+  add(new THREE.CylinderGeometry(0.075, 0.09, 0.055, 14), 0, 0.835);
 
   // ── Head ─────────────────────────────────────────────────────────────────
-  add(new THREE.SphereGeometry(0.075, 10, 8), 0, 0.915);
+  add(new THREE.SphereGeometry(0.075, 14, 12), 0, 0.915);
 
-  // ── Mitre (bishop's pointed hat) — two-part tapered form ─────────────────
-  // Wide brim band of mitre
-  add(new THREE.CylinderGeometry(0.085, 0.085, 0.03, 10), 0, 0.975);
+  // ── Mitre (bishop's pointed hat) — smooth tapered form + trim band ────────
+  add(new THREE.CylinderGeometry(0.085, 0.085, 0.03, 16), 0, 0.975);
+  addT(new THREE.TorusGeometry(0.084, 0.007, 6, 20), 0, 0.99, 0, Math.PI / 2, 0, 0);
   // Lower mitre body
-  add(new THREE.CylinderGeometry(0.065, 0.082, 0.1, 8), 0, 1.045);
+  add(new THREE.CylinderGeometry(0.065, 0.082, 0.1, 14), 0, 1.045);
   // Upper mitre point
-  add(new THREE.ConeGeometry(0.052, 0.15, 8), 0, 1.17);
+  add(new THREE.ConeGeometry(0.052, 0.15, 14), 0, 1.17);
 
-  // ── Right arm — raised in blessing ───────────────────────────────────────
-  // Upper arm angled outward and up
-  add(new THREE.CylinderGeometry(0.036, 0.044, 0.16, 7), 0.12, 0.75, 0.02, 0, 0, -0.75);
-  // Forearm raised upward
-  add(new THREE.CylinderGeometry(0.028, 0.036, 0.14, 7), 0.19, 0.83, 0.02, 0, 0, -1.2);
+  // ── Right arm — raised in blessing (capsules) ─────────────────────────────
+  add(new THREE.CapsuleGeometry(0.038, 0.1, 4, 10), 0.12, 0.75, 0.02, 0, 0, -0.75);
+  add(new THREE.CapsuleGeometry(0.03, 0.09, 4, 10), 0.19, 0.83, 0.02, 0, 0, -1.2);
   // Hand (small sphere)
-  add(new THREE.SphereGeometry(0.032, 7, 6), 0.195, 0.94, 0.02);
+  add(new THREE.SphereGeometry(0.032, 10, 8), 0.195, 0.94, 0.02);
 
   // ── Left arm — holding crozier staff ─────────────────────────────────────
-  add(new THREE.CylinderGeometry(0.036, 0.044, 0.16, 7), -0.11, 0.75, 0.02, 0, 0, 0.5);
-  add(new THREE.CylinderGeometry(0.028, 0.036, 0.12, 7), -0.15, 0.65, 0.03, 0, 0, 0.3);
+  add(new THREE.CapsuleGeometry(0.038, 0.1, 4, 10), -0.11, 0.75, 0.02, 0, 0, 0.5);
+  add(new THREE.CapsuleGeometry(0.03, 0.08, 4, 10), -0.15, 0.65, 0.03, 0, 0, 0.3);
 
   // ── Crozier staff (gold trim — tall vertical rod held in left hand) ───────
   // Shaft — tall cylinder beside figure
@@ -686,6 +789,7 @@ export function buildBishopGroup(mats: PieceMats, facingAngleY = 0): THREE.Group
 export function buildKnightGroup(mats: PieceMats, facingAngleY = 0): THREE.Group {
   const mat = mats.stone;
   const g = new THREE.Group();
+  const gTrim = new THREE.Group();
 
   const add = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
     const m = new THREE.Mesh(geo, mat);
@@ -693,6 +797,14 @@ export function buildKnightGroup(mats: PieceMats, facingAngleY = 0): THREE.Group
     m.rotation.set(rx, ry, rz);
     m.castShadow = true;
     g.add(m);
+    return m;
+  };
+  const addT = (geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(geo, mats.trim);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    gTrim.add(m);
     return m;
   };
 
@@ -717,14 +829,14 @@ export function buildKnightGroup(mats: PieceMats, facingAngleY = 0): THREE.Group
   // ── Horse: rearing pose — hindquarters low, forelegs raised ───────────────
 
   // Hindquarters / rump — large rounded mass, sits low and back
-  add(new THREE.SphereGeometry(0.18, 10, 8), 0.0, 0.48, -0.06);
-  // Main barrel / belly
-  add(new THREE.CylinderGeometry(0.14, 0.17, 0.4, 10), 0.0, 0.6, 0.04, 0.55, 0, 0);
+  add(new THREE.SphereGeometry(0.18, 16, 12).scale(0.95, 1.0, 1.08), 0.0, 0.48, -0.06);
+  // Main barrel / belly — capsule reads as one muscled mass
+  add(new THREE.CapsuleGeometry(0.145, 0.26, 6, 14), 0.0, 0.6, 0.04, 0.55, 0, 0);
   // Chest — angled forward as horse rears
-  add(new THREE.SphereGeometry(0.155, 10, 8), 0.0, 0.78, 0.12);
+  add(new THREE.SphereGeometry(0.155, 16, 12).scale(0.92, 1.05, 1.0), 0.0, 0.78, 0.12);
 
-  // Neck — long cylinder angling up and forward
-  add(new THREE.CylinderGeometry(0.075, 0.1, 0.38, 9), 0.0, 0.98, 0.1, -0.7, 0, 0);
+  // Neck — arched muscled sweep (capsule)
+  add(new THREE.CapsuleGeometry(0.085, 0.3, 6, 14), 0.0, 0.98, 0.1, -0.7, 0, 0);
 
   // Mane — series of flat overlapping plates along neck top
   for (let i = 0; i < 5; i++) {
@@ -734,29 +846,40 @@ export function buildKnightGroup(mats: PieceMats, facingAngleY = 0): THREE.Group
     add(new THREE.BoxGeometry(0.025, 0.07, 0.05), 0, ny, nz + 0.07, -0.3, 0, 0);
   }
 
-  // Head — elongated box + snout
-  add(new THREE.BoxGeometry(0.13, 0.17, 0.22), 0.0, 1.155, 0.195);
-  // Snout / jaw extension
-  add(new THREE.BoxGeometry(0.1, 0.1, 0.14), 0.0, 1.09, 0.3);
+  // Head — sculpted skull: tapered ellipsoid angled down toward muzzle
+  add(
+    new THREE.SphereGeometry(0.095, 16, 12).scale(0.72, 1.0, 1.35),
+    0.0,
+    1.155,
+    0.21,
+    -0.55,
+    0,
+    0,
+  );
+  // Muzzle — narrower tapered ellipsoid flowing from the skull
+  add(new THREE.SphereGeometry(0.06, 14, 10).scale(0.78, 0.85, 1.5), 0.0, 1.08, 0.32, -0.35, 0, 0);
+  // Jaw / cheek masses
+  add(new THREE.SphereGeometry(0.045, 10, 8), -0.045, 1.1, 0.22);
+  add(new THREE.SphereGeometry(0.045, 10, 8), 0.045, 1.1, 0.22);
   // Nostril bumps
-  add(new THREE.SphereGeometry(0.028, 6, 5), -0.038, 1.07, 0.37);
-  add(new THREE.SphereGeometry(0.028, 6, 5), 0.038, 1.07, 0.37);
-  // Eye sockets (slight recess)
-  add(new THREE.SphereGeometry(0.022, 6, 5), -0.063, 1.16, 0.27);
-  add(new THREE.SphereGeometry(0.022, 6, 5), 0.063, 1.16, 0.27);
-  // Ear spikes
-  add(new THREE.ConeGeometry(0.022, 0.08, 6), -0.045, 1.255, 0.18, -0.2, 0, 0.15);
-  add(new THREE.ConeGeometry(0.022, 0.08, 6), 0.045, 1.255, 0.18, -0.2, 0, -0.15);
-  // Horn / helmet spike on forehead
-  add(new THREE.ConeGeometry(0.018, 0.12, 6), 0.0, 1.28, 0.21, -0.35, 0, 0);
+  add(new THREE.SphereGeometry(0.022, 8, 6), -0.03, 1.055, 0.39);
+  add(new THREE.SphereGeometry(0.022, 8, 6), 0.03, 1.055, 0.39);
+  // Brow ridges
+  add(new THREE.SphereGeometry(0.024, 8, 6), -0.055, 1.18, 0.26);
+  add(new THREE.SphereGeometry(0.024, 8, 6), 0.055, 1.18, 0.26);
+  // Ears — curved cones swept back
+  add(new THREE.ConeGeometry(0.024, 0.09, 8), -0.05, 1.26, 0.16, -0.35, 0, 0.2);
+  add(new THREE.ConeGeometry(0.024, 0.09, 8), 0.05, 1.26, 0.16, -0.35, 0, -0.2);
+  // Chamfron horn — armored forehead spike (metallic trim)
+  addT(new THREE.ConeGeometry(0.016, 0.12, 8), 0.0, 1.28, 0.22, -0.45, 0, 0);
 
-  // Armor banding on neck (horizontal rings)
+  // Armor banding on neck (metallic trim rings)
   for (let i = 0; i < 4; i++) {
     const t = i / 3;
     const ny = 0.855 + t * 0.22;
     const nz = 0.165 - t * 0.06;
-    add(
-      new THREE.TorusGeometry(0.085 - t * 0.008, 0.012, 5, 12),
+    addT(
+      new THREE.TorusGeometry(0.09 - t * 0.008, 0.01, 6, 18),
       0,
       ny,
       nz,
@@ -832,16 +955,14 @@ export function buildKnightGroup(mats: PieceMats, facingAngleY = 0): THREE.Group
 
   // ── Rider: armored knight sitting on horse's back ─────────────────────────
 
-  // Rider lower body / saddle seat
-  add(new THREE.BoxGeometry(0.18, 0.1, 0.16), 0.0, 0.75, -0.02);
-  // Rider torso — upright plate armor
-  add(new THREE.BoxGeometry(0.2, 0.26, 0.16), 0.0, 0.91, 0.01);
-  // Back plate
-  add(new THREE.BoxGeometry(0.18, 0.22, 0.07), 0.0, 0.91, -0.1);
+  // Rider lower body / saddle seat — rounded
+  add(new THREE.SphereGeometry(0.1, 12, 10).scale(0.95, 0.6, 0.85), 0.0, 0.75, -0.02);
+  // Rider torso — rounded cuirass
+  add(new THREE.SphereGeometry(0.125, 16, 12).scale(0.85, 1.15, 0.72), 0.0, 0.91, 0.01);
   // Pauldron left
-  add(new THREE.SphereGeometry(0.068, 8, 6), -0.13, 1.0, 0.0);
+  add(new THREE.SphereGeometry(0.068, 10, 8), -0.13, 1.0, 0.0);
   // Pauldron right
-  add(new THREE.SphereGeometry(0.068, 8, 6), 0.13, 1.0, 0.0);
+  add(new THREE.SphereGeometry(0.068, 10, 8), 0.13, 1.0, 0.0);
 
   // ── Large shield on rider's left arm ─────────────────────────────────────
   // Shield face (wide kite/heater shape approximated as cylinder + box)
@@ -918,7 +1039,8 @@ export function buildKnightGroup(mats: PieceMats, facingAngleY = 0): THREE.Group
 
   // ── Merge the static body, then attach animated children ────────────────────
   g.rotation.y = facingAngleY;
-  const result = mergeGroupToSingleMesh(g, mat);
+  gTrim.rotation.y = facingAngleY;
+  const result = mergeStoneAndTrim(g, gTrim, mats);
 
   // Rotate pivot positions by the same facing angle and add to result
   for (const child of [legFL, legFR, legHL, legHR, swordArm]) {
@@ -1080,20 +1202,7 @@ export function createPieceGroup(
   if (type === 'r') return { group: buildRookGroup(mats, facing), rimUniforms };
   if (type === 'k') return { group: buildKingGroup(mats, facing, house), rimUniforms };
   if (type === 'b') return { group: buildBishopGroup(mats, facing), rimUniforms };
-
-  const profile = PIECE_PROFILES[type];
-  const geo = buildLatheGeometry(type);
-
-  const mesh = new THREE.Mesh(geo, stone);
-  mesh.castShadow = true;
-  mesh.receiveShadow = false;
-
-  const group = new THREE.Group();
-  group.add(mesh);
-
-  if (type === 'q') addQueenCrown(group, profile.height, 0.24, trim);
-
-  return { group, rimUniforms };
+  return { group: buildQueenGroup(mats, facing), rimUniforms };
 }
 
 /** Dispose all geometries and materials inside a piece group. */

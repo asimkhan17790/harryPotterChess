@@ -16,19 +16,41 @@ export function createDebrisExplosion(
   const meshes: THREE.Mesh[] = [];
   for (let i = 0; i < count; i++) {
     const s = 0.05 + Math.random() * 0.12;
-    const geo = new THREE.BoxGeometry(s, s, s);
+    // Mix angular rock chunks (icosahedra) with broken-edge boxes so the
+    // victim reads as carved stone crumbling apart
+    const geo =
+      Math.random() < 0.55
+        ? new THREE.IcosahedronGeometry(s * 0.7, 0)
+        : new THREE.BoxGeometry(s, s, s);
     const mat = new THREE.MeshStandardMaterial({
       color,
       transparent: true,
       opacity: 1,
-      roughness: 0.7,
+      roughness: 0.85,
+      metalness: 0.05,
     });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.copy(position);
+    mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
     group.add(mesh);
     meshes.push(mesh);
   }
   return meshes;
+}
+
+/**
+ * Samples the victim piece's stone body colour so debris matches its side
+ * and house. Falls back to a neutral grey when no material is found.
+ */
+export function victimStoneColor(victim: THREE.Object3D): number {
+  let color = -1;
+  victim.traverse((child) => {
+    if (color === -1 && child instanceof THREE.Mesh) {
+      const mat = child.material as THREE.MeshStandardMaterial;
+      if (mat?.color) color = mat.color.getHex();
+    }
+  });
+  return color === -1 ? 0x8a8578 : color;
 }
 
 // ── Particles ────────────────────────────────────────────────────────────────

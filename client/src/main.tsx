@@ -2,13 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
-import { preloadPieceModels } from './geometry/gltfPieceCache';
 import { supabase } from './lib/supabaseClient';
 import { useUserStore } from './stores/userStore';
-
-preloadPieceModels().catch(() => {
-  // Silent fallback — PieceFactory uses procedural geometry if models fail to load
-});
 
 // Restore session on page load (handles refresh + OAuth redirect)
 supabase.auth.getSession().then(({ data: { session } }) => {

@@ -49,7 +49,8 @@ import { createCaptureEffect } from '../effects/index';
 import type { CaptureEffect } from '../effects/index';
 import { createPieceGroup, disposePieceGroup } from '../geometry/PieceFactory';
 import type { RimUniforms } from '../geometry/PieceFactory';
-import { onModelsReady } from '../geometry/gltfPieceCache';
+import { DustPuffEffect } from '../effects/DustPuff';
+import { MOVE_PROFILES } from '../data/moveProfiles';
 import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
 
@@ -122,7 +123,6 @@ function findKingSquare(
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const ARC_HEIGHT = 1.8;
 const CANDLE_COUNT = 12;
 const CANDLE_RADIUS = 5.5;
 const CANDLE_HEIGHT = 4.0;
@@ -647,12 +647,6 @@ function GameLogic({
   const theme = HOUSE_THEMES[house];
   const { scene, camera, gl } = useThree();
 
-  // Incremented when GLTF models finish loading — forces piece useEffect to re-run
-  const [modelsVersion, setModelsVersion] = useState(0);
-  useEffect(() => {
-    onModelsReady(() => setModelsVersion((v) => v + 1));
-  }, []);
-
   // Reset game history state when a new game mounts
   useEffect(() => {
     const store = useGameStore.getState();
@@ -679,6 +673,7 @@ function GameLogic({
   const { requestMove, ready: engineReady } = useStockfish(aiColor !== null);
   // Tracks the piece currently in motion + elapsed time for procedural animation
   const movingPiece = useRef<PieceObject | null>(null);
+  const knightStamps = useRef<Map<Square, { next: number; leg: string }>>(new Map());
   const moveAnimTime = useRef(0);
   // Per-piece bob spring — keyed by square, created alongside each piece mesh
   const bobSprings = useRef(new Map<Square, Spring>());
@@ -688,7 +683,9 @@ function GameLogic({
   const checkKingSquareRef = useRef<Square | null>(null);
   // Tracks piece meshes that have been colour-tinted for highlights, so we can restore them.
   // We clone the material before tinting so shared material instances are not mutated globally.
-  const tintedMeshes = useRef<{ mesh: THREE.Mesh; origMat: THREE.MeshStandardMaterial }[]>([]);
+  const tintedMeshes = useRef<{ mesh: THREE.Mesh; origEmissive: number; origIntensity: number }[]>(
+    [],
+  );
 
   // ── Camera helpers ─────────────────────────────────────────────────────────
 
@@ -847,25 +844,28 @@ function GameLogic({
       pm.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [house, modelsVersion]); // rebuild pieces when house changes or GLTFs finish loading
+  }, [house]); // rebuild pieces when house changes
 
   // ── Highlight helpers ──────────────────────────────────────────────────────
 
-  // Tint all standard meshes in a piece group to a target colour.
-  // Clones the material per-mesh so shared material instances are not globally mutated.
+  // Glow-tint all meshes in a piece group via emissive.
+  // NEVER clone these materials: Material.clone() drops onBeforeCompile,
+  // which would strip the injected marble/rim shader. Each piece owns its
+  // material instances, so mutating emissive is safe and per-piece.
   const tintPiece = useCallback(
-    (pieceObj: PieceObject, color: number, emissive: number, emissiveIntensity: number) => {
+    (pieceObj: PieceObject, color: number, _emissive: number, emissiveIntensity: number) => {
       pieceObj.traverse((child) => {
         if (!(child instanceof THREE.Mesh)) return;
-        const origMat = child.material as THREE.MeshStandardMaterial;
-        if (!origMat.color) return;
-        const cloned = origMat.clone();
-        cloned.color.setHex(color);
-        cloned.emissive.setHex(emissive);
-        cloned.emissiveIntensity = emissiveIntensity;
-        cloned.needsUpdate = true;
-        child.material = cloned;
-        tintedMeshes.current.push({ mesh: child, origMat });
+        const mat = child.material as THREE.MeshStandardMaterial;
+        if (!mat.emissive) return;
+        tintedMeshes.current.push({
+          mesh: child,
+          origEmissive: mat.emissive.getHex(),
+          origIntensity: mat.emissiveIntensity,
+        });
+        // Use the highlight colour as the glow hue — stone diffuse stays untouched
+        mat.emissive.setHex(color);
+        mat.emissiveIntensity = Math.max(emissiveIntensity, 0.5);
       });
     },
     [],
@@ -881,14 +881,16 @@ function GameLogic({
     for (const [sq, mat] of tileMats.current) {
       mat.color.setHex(isLightSquare(sq) ? theme.lightTile : theme.darkTile);
     }
-    // Restore original shared material and dispose the per-highlight clone
-    for (const { mesh, origMat } of tintedMeshes.current) {
-      (mesh.material as THREE.MeshStandardMaterial).dispose();
-      mesh.material = origMat;
+    // Restore original emissive values (materials are never cloned/swapped)
+    for (const { mesh, origEmissive, origIntensity } of tintedMeshes.current) {
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      mat.emissive.setHex(origEmissive);
+      mat.emissiveIntensity = origIntensity;
     }
     tintedMeshes.current.length = 0;
-    // Reset rim glow on all pieces
+    // Reset rim glow on all pieces (kill repeating pulse tweens first)
     for (const rim of rimUniformsMap.current.values()) {
+      gsap.killTweensOf(rim.uRimIntensity);
       gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
     }
   }, [scene, theme]);
@@ -926,7 +928,13 @@ function GameLogic({
           const rimOn = rimUniformsMap.current.get(sq);
           if (rimOn) {
             rimOn.uRimColor.value.set(0xff2200);
-            gsap.to(rimOn.uRimIntensity, { value: 2.5, duration: 0.3, ease: 'power2.out' });
+            // Urgent red pulse on capturable pieces
+            gsap.killTweensOf(rimOn.uRimIntensity);
+            gsap.fromTo(
+              rimOn.uRimIntensity,
+              { value: 1.6 },
+              { value: 2.8, duration: 0.4, ease: 'sine.inOut', repeat: -1, yoyo: true },
+            );
           }
         }
       }
@@ -1001,49 +1009,57 @@ function GameLogic({
 
   // Slides the rook to its post-castling square immediately after the king lands.
   // chess.js has already applied the move by this point, so we just animate the mesh.
-  const animateCastlingRook = useCallback((rookFromSq: Square, rookToSq: Square): Promise<void> => {
-    return new Promise<void>((resolve) => {
-      const rookMesh = pieceMeshes.current.get(rookFromSq);
-      if (!rookMesh) {
-        resolve();
-        return;
-      }
+  const animateCastlingRook = useCallback(
+    (rookFromSq: Square, rookToSq: Square): Promise<void> => {
+      return new Promise<void>((resolve) => {
+        const rookMesh = pieceMeshes.current.get(rookFromSq);
+        if (!rookMesh) {
+          resolve();
+          return;
+        }
 
-      const [rx, rz] = squareToXZ(rookToSq);
+        const [rx, rz] = squareToXZ(rookToSq);
 
-      // Update data structures before the tween so raycasting is correct
-      pieceMeshes.current.delete(rookFromSq);
-      pieceMeshes.current.set(rookToSq, rookMesh);
-      rookMesh.userData.square = rookToSq;
-      const rookSpring = bobSprings.current.get(rookFromSq);
-      if (rookSpring) {
-        bobSprings.current.delete(rookFromSq);
-        bobSprings.current.set(rookToSq, rookSpring);
-      }
-      const rookRim = rimUniformsMap.current.get(rookFromSq);
-      if (rookRim) {
-        rimUniformsMap.current.delete(rookFromSq);
-        rimUniformsMap.current.set(rookToSq, rookRim);
-      }
+        // Update data structures before the tween so raycasting is correct
+        pieceMeshes.current.delete(rookFromSq);
+        pieceMeshes.current.set(rookToSq, rookMesh);
+        rookMesh.userData.square = rookToSq;
+        const rookSpring = bobSprings.current.get(rookFromSq);
+        if (rookSpring) {
+          bobSprings.current.delete(rookFromSq);
+          bobSprings.current.set(rookToSq, rookSpring);
+        }
+        const rookRim = rimUniformsMap.current.get(rookFromSq);
+        if (rookRim) {
+          rimUniformsMap.current.delete(rookFromSq);
+          rimUniformsMap.current.set(rookToSq, rookRim);
+        }
 
-      gsap.killTweensOf(rookMesh.position);
-      // Low arc — rook glides with a shallow hop
-      gsap.to(rookMesh.position, {
-        x: rx,
-        z: rz,
-        duration: 0.35,
-        ease: 'power2.inOut',
-        onComplete: resolve,
+        gsap.killTweensOf(rookMesh.position);
+        // Rook profile: heavy low slide with a landing thud
+        const rookProf = MOVE_PROFILES.r;
+        gsap.to(rookMesh.position, {
+          x: rx,
+          z: rz,
+          duration: 0.45,
+          ease: rookProf.travelEase,
+          onComplete: () => {
+            activeEffects.current.push(new DustPuffEffect(scene, new THREE.Vector3(rx, 0, rz)));
+            if (rookProf.landShake > 0) cameraShake(rookProf.landShake, 0.25);
+            resolve();
+          },
+        });
+        gsap.to(rookMesh.position, {
+          y: rookProf.arc,
+          duration: 0.225,
+          ease: 'power2.out',
+          yoyo: true,
+          repeat: 1,
+        });
       });
-      gsap.to(rookMesh.position, {
-        y: 0.6,
-        duration: 0.175,
-        ease: 'power2.out',
-        yoyo: true,
-        repeat: 1,
-      });
-    });
-  }, []);
+    },
+    [scene, cameraShake],
+  );
 
   // ── Game-over detection ────────────────────────────────────────────────────
 
@@ -1196,10 +1212,17 @@ function GameLogic({
         },
       });
 
-      // 1. Anticipation dip + lift off
+      // Per-piece movement weight profile (heavy king slides, pawn hops, ...)
+      const prof =
+        MOVE_PROFILES[movingMesh.userData.pieceType as keyof typeof MOVE_PROFILES] ??
+        MOVE_PROFILES.p;
+      const travelDur = isCapture ? prof.travelDur * 0.9 : prof.travelDur;
+      const sqz = prof.squash;
+
+      // 1. Anticipation dip + lift off to the profile's arc height
       tl.to(movingMesh.position, { y: fromY - 0.04, duration: 0.06, ease: 'power2.in' }).to(
         movingMesh.position,
-        { y: ARC_HEIGHT, duration: 0.18, ease: 'pickup' },
+        { y: prof.arc, duration: prof.liftDur, ease: 'pickup' },
       );
 
       // 2. Horizontal travel — overlaps with the lift
@@ -1208,31 +1231,53 @@ function GameLogic({
         {
           x: tx,
           z: tz,
-          duration: isCapture ? 0.38 : 0.42,
-          ease: isCapture ? 'slam' : 'power2.inOut',
+          duration: travelDur,
+          ease: isCapture ? 'slam' : prof.travelEase,
         },
         0.06,
       );
 
-      // 3. Forward lean during travel (peaks at mid-arc, returns on land)
+      // 3. Forward lean during travel (higher arcs lean harder)
+      const leanAmt = 0.12 + prof.arc * 0.05;
       tl.to(
         movingMesh.rotation,
-        { x: lx * 0.2, z: lz * 0.2, duration: 0.2, ease: 'power1.inOut' },
+        { x: lx * leanAmt, z: lz * leanAmt, duration: travelDur * 0.5, ease: 'power1.inOut' },
         0.06,
-      ).to(movingMesh.rotation, { x: 0, z: 0, duration: 0.18, ease: 'power2.out' }, 0.26);
+      ).to(
+        movingMesh.rotation,
+        { x: 0, z: 0, duration: travelDur * 0.45, ease: 'power2.out' },
+        0.06 + travelDur * 0.5,
+      );
 
       // 4. Land — fast drop, elastic settle
-      const landStart = isCapture ? 0.36 : 0.4;
+      const landStart = Math.max(0.06 + prof.liftDur, 0.06 + travelDur - 0.22);
       tl.to(movingMesh.position, { y: 0, duration: 0.2, ease: 'land' }, landStart);
 
-      // 5. Squash-and-stretch on impact: squash → overshoot tall → elastic settle
+      // 4b. Landing impact — dust puff at the destination square, camera thud
+      // for heavy pieces. tl.call keeps timing on the GSAP clock (no setTimeout).
       const impactAt = landStart + 0.16;
+      tl.call(
+        () => {
+          activeEffects.current.push(new DustPuffEffect(scene, new THREE.Vector3(tx, 0, tz)));
+          if (prof.landShake > 0) cameraShake(prof.landShake, 0.25);
+        },
+        undefined,
+        impactAt,
+      );
+
+      // 5. Squash-and-stretch on impact, scaled by piece weight
       tl.to(
         movingMesh.scale,
-        { y: 0.6, x: 1.3, z: 1.3, duration: 0.06, ease: 'power3.in' },
+        { y: 1 - 0.4 * sqz, x: 1 + 0.3 * sqz, z: 1 + 0.3 * sqz, duration: 0.06, ease: 'power3.in' },
         impactAt,
       )
-        .to(movingMesh.scale, { y: 1.15, x: 0.92, z: 0.92, duration: 0.12, ease: 'power2.out' })
+        .to(movingMesh.scale, {
+          y: 1 + 0.15 * sqz,
+          x: 1 - 0.08 * sqz,
+          z: 1 - 0.08 * sqz,
+          duration: 0.12,
+          ease: 'power2.out',
+        })
         .to(movingMesh.scale, {
           y: 1.0,
           x: 1.0,
@@ -1299,15 +1344,16 @@ function GameLogic({
     });
   }, [aiColor, engineReady, requestMove, difficulty, executeMove]);
 
-  // When AI plays white it must move first; fire after engine is ready and pieces loaded
+  // When AI plays white it must move first; fire after engine is ready
+  // (pieces are placed synchronously in the initial-placement effect)
   useEffect(() => {
-    if (aiColor === 'w' && engineReady && modelsVersion > 0) {
+    if (aiColor === 'w' && engineReady) {
       const t = setTimeout(() => {
         triggerAiMove();
       }, 800);
       return () => clearTimeout(t);
     }
-  }, [aiColor, engineReady, modelsVersion, triggerAiMove]);
+  }, [aiColor, engineReady, triggerAiMove]);
 
   // ── Pointer interaction ────────────────────────────────────────────────────
 
@@ -1394,11 +1440,20 @@ function GameLogic({
         const rimOn = rimUniformsMap.current.get(sq);
         if (rimOn) {
           rimOn.uRimColor.value.set(0xffd700);
-          gsap.to(rimOn.uRimIntensity, { value: 2.0, duration: 0.3, ease: 'power2.out' });
+          // Breathing pulse instead of a one-shot glow — must kill on deselect
+          gsap.killTweensOf(rimOn.uRimIntensity);
+          gsap.fromTo(
+            rimOn.uRimIntensity,
+            { value: 1.2 },
+            { value: 2.4, duration: 0.55, ease: 'sine.inOut', repeat: -1, yoyo: true },
+          );
         }
         // Rim light off — any previously selected piece
         for (const [rsq, rimOff] of rimUniformsMap.current) {
-          if (rsq !== sq) gsap.to(rimOff.uRimIntensity, { value: 0.0, duration: 0.2 });
+          if (rsq !== sq) {
+            gsap.killTweensOf(rimOff.uRimIntensity);
+            gsap.to(rimOff.uRimIntensity, { value: 0.0, duration: 0.2 });
+          }
         }
       } else {
         clearHighlights();
@@ -1406,6 +1461,7 @@ function GameLogic({
         legalTargets.current = [];
         // Rim light off — all pieces
         for (const rim of rimUniformsMap.current.values()) {
+          gsap.killTweensOf(rim.uRimIntensity);
           gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
       }
@@ -1438,11 +1494,11 @@ function GameLogic({
       const piece = movingPiece.current;
       const pieceType = piece.userData.pieceType as string;
 
-      // All pieces: subtle body bounce/gallop oscillation added on top of GSAP arc
-      // Only apply during the airborne phase (roughly 0.06–0.56s)
-      if (t > 0.06 && t < 0.58) {
-        const gallop = Math.sin(t * 18) * 0.025;
-        piece.position.y += gallop;
+      // Gallop bob on top of the GSAP arc — only for pieces whose profile has
+      // one (pawn hop, knight gallop); robed/heavy pieces glide smoothly.
+      const moveProf = MOVE_PROFILES[pieceType as keyof typeof MOVE_PROFILES] ?? MOVE_PROFILES.p;
+      if (moveProf.gallopAmp > 0 && t > 0.06 && t < 0.58) {
+        piece.position.y += Math.sin(t * moveProf.gallopFreq) * moveProf.gallopAmp;
       }
 
       // Knight only: animate 4 leg groups in a gallop cycle
@@ -1471,6 +1527,46 @@ function GameLogic({
         if (!spring) continue;
         spring.target = sq === sel ? 0.28 : 0;
         mesh.position.y = spring.update(delta);
+      }
+    }
+
+    // ── Idle breathing / sway — pieces feel alive while standing ─────────────
+    // Whole-group transforms only (merged geometry can't flex), written as
+    // absolute values each frame so GSAP's onComplete resets self-correct.
+    // Springs own position.y; idles own scale.y / rotation.z — no conflict.
+    if (!animInProgress.current) {
+      const tNow = clock.elapsedTime;
+      for (const [sq, mesh] of pieceMeshes.current) {
+        // Per-square phase hash so the army doesn't breathe in unison
+        const phase = ((sq.charCodeAt(0) * 7 + sq.charCodeAt(1) * 13) % 17) * 0.37;
+        mesh.scale.y = 1 + 0.004 * Math.sin(tNow * 1.6 + phase);
+        mesh.rotation.z = 0.006 * Math.sin(tNow * 0.9 + phase * 1.7);
+
+        // Knight horses occasionally stamp a foreleg
+        if ((mesh.userData.pieceType as string) === 'n') {
+          let stamp = knightStamps.current.get(sq);
+          if (!stamp || tNow > stamp.next + 0.4) {
+            if (stamp) {
+              const doneLeg = stamp.leg;
+              mesh.traverse((c) => {
+                if (c instanceof THREE.Group && c.userData.role === doneLeg) c.rotation.x = 0;
+              });
+            }
+            stamp = {
+              next: tNow + 4 + Math.random() * 5,
+              leg: Math.random() < 0.5 ? 'legFL' : 'legFR',
+            };
+            knightStamps.current.set(sq, stamp);
+          } else if (tNow > stamp.next) {
+            const s = Math.sin(((tNow - stamp.next) / 0.4) * Math.PI);
+            const activeLeg = stamp.leg;
+            mesh.traverse((c) => {
+              if (c instanceof THREE.Group && c.userData.role === activeLeg) {
+                c.rotation.x = s * 0.55;
+              }
+            });
+          }
+        }
       }
     }
 
@@ -1813,7 +1909,7 @@ function PostFX() {
     <EffectComposer>
       <Bloom
         intensity={sharedBloomProxy.intensity}
-        luminanceThreshold={0.9}
+        luminanceThreshold={0.8}
         luminanceSmoothing={0.8}
         blendFunction={BlendFunction.ADD}
       />
@@ -2412,14 +2508,27 @@ export default function ChessScene() {
             antialias: true,
             alpha: true,
             toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 0.65,
+            toneMappingExposure: 0.8,
           }}
           dpr={IS_MOBILE ? [1, 1.5] : [1, 2]}
           performance={{ min: 0.5 }}
         >
-          {/* Lighting — intentionally dim; candles provide most of the fill */}
+          {/* Lighting — dim ambient; raking key light casts real piece shadows */}
           <ambientLight intensity={0.35} color={0xfff0d0} />
-          <directionalLight position={[5, 22, 5]} intensity={1.1} />
+          <directionalLight
+            position={[6, 14, 6]}
+            intensity={1.15}
+            castShadow
+            shadow-mapSize={IS_MOBILE ? [1024, 1024] : [2048, 2048]}
+            shadow-camera-left={-6}
+            shadow-camera-right={6}
+            shadow-camera-top={6}
+            shadow-camera-bottom={-6}
+            shadow-camera-near={1}
+            shadow-camera-far={40}
+            shadow-bias={-0.0005}
+            shadow-normalBias={0.02}
+          />
           <directionalLight position={[-5, 6, -8]} intensity={0.4} color={0xaabbff} />
 
           {/* HDRI — apartment preset is dark, good for candlelit mood */}

@@ -5,6 +5,15 @@
       "input_tokens": 3200,
       "output_tokens": 2100,
       "files": 70
+<<<<<<< HEAD
+    },
+    {
+      "date": "2026-06-11T01:32:24.900286+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 52
+=======
+>>>>>>> be46383 (feat: mobile-responsive layout, graphify knowledge graph, and codebase tooling (#15))
     }
   ],
   "total_input_tokens": 3200,

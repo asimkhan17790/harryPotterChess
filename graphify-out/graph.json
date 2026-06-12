@@ -4,6 +4,8 @@
   "graph": {},
   "nodes": [
     {
+<<<<<<< HEAD
+=======
       "label": "index.test.ts",
       "file_type": "code",
       "source_file": "server/src/index.test.ts",
@@ -103,12 +105,17 @@
       "norm_label": "index.ts"
     },
     {
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "label": "eslint.config.js",
       "file_type": "code",
       "source_file": "client/eslint.config.js",
       "source_location": "L1",
       "id": "client_eslint_config_js",
+<<<<<<< HEAD
+      "community": 22,
+=======
       "community": 25,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "eslint.config.js"
     },
     {
@@ -117,7 +124,11 @@
       "source_file": "client/vite.config.ts",
       "source_location": "L1",
       "id": "client_vite_config_ts",
+<<<<<<< HEAD
+      "community": 23,
+=======
       "community": 26,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "vite.config.ts"
     },
     {
@@ -126,7 +137,11 @@
       "source_file": "client/public/stockfish-nnue-16-single.js",
       "source_location": "L1",
       "id": "client_public_stockfish_nnue_16_single_js",
+<<<<<<< HEAD
+      "community": 7,
+=======
       "community": 9,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "stockfish-nnue-16-single.js"
     },
     {
@@ -135,7 +150,11 @@
       "source_file": "client/public/stockfish-nnue-16-single.js",
       "source_location": "L14",
       "id": "stockfish_nnue_16_single_i",
+<<<<<<< HEAD
+      "community": 7,
+=======
       "community": 9,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "i()"
     },
     {
@@ -144,7 +163,11 @@
       "source_file": "client/public/stockfish-nnue-16-single.js",
       "source_location": "L14",
       "id": "stockfish_nnue_16_single_t",
+<<<<<<< HEAD
+      "community": 7,
+=======
       "community": 9,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "t()"
     },
     {
@@ -153,7 +176,11 @@
       "source_file": "client/public/stockfish-nnue-16-single.js",
       "source_location": "L14",
       "id": "stockfish_nnue_16_single_e",
+<<<<<<< HEAD
+      "community": 7,
+=======
       "community": 9,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "e()"
     },
     {
@@ -162,7 +189,11 @@
       "source_file": "client/public/stockfish-nnue-16-single.js",
       "source_location": "L14",
       "id": "stockfish_nnue_16_single_f",
+<<<<<<< HEAD
+      "community": 7,
+=======
       "community": 9,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "f()"
     },
     {
@@ -171,7 +202,11 @@
       "source_file": "client/public/stockfish-nnue-16-single.js",
       "source_location": "L14",
       "id": "stockfish_nnue_16_single_l",
+<<<<<<< HEAD
+      "community": 7,
+=======
       "community": 9,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "l()"
     },
     {
@@ -180,7 +215,11 @@
       "source_file": "client/public/stockfish-worker.js",
       "source_location": "L1",
       "id": "client_public_stockfish_worker_js",
+<<<<<<< HEAD
+      "community": 24,
+=======
       "community": 27,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "stockfish-worker.js"
     },
     {
@@ -189,7 +228,11 @@
       "source_file": "client/src/App.tsx",
       "source_location": "L1",
       "id": "client_src_app_tsx",
+<<<<<<< HEAD
+      "community": 16,
+=======
       "community": 18,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "app.tsx"
     },
     {
@@ -198,7 +241,11 @@
       "source_file": "client/src/main.tsx",
       "source_location": "L1",
       "id": "client_src_main_tsx",
+<<<<<<< HEAD
+      "community": 16,
+=======
       "community": 18,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "main.tsx"
     },
     {
@@ -207,7 +254,11 @@
       "source_file": "client/src/scenes/ChessScene.tsx",
       "source_location": "L1",
       "id": "client_src_scenes_chessscene_tsx",
+<<<<<<< HEAD
+      "community": 4,
+=======
       "community": 6,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "chessscene.tsx"
     },
     {
@@ -216,7 +267,11 @@
       "source_file": "client/src/scenes/ChessScene.tsx",
       "source_location": "L107",
       "id": "chessscene_findkingsquare",
+<<<<<<< HEAD
+      "community": 4,
+=======
       "community": 6,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "findkingsquare()"
     },
     {
@@ -225,7 +280,11 @@
       "source_file": "client/src/scenes/ChessScene.tsx",
       "source_location": "L1263",
       "id": "chessscene_check",
+<<<<<<< HEAD
+      "community": 4,
+=======
       "community": 6,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "check()"
     },
     {
@@ -234,7 +293,11 @@
       "source_file": "client/src/scenes/ChessScene.tsx",
       "source_location": "L2227",
       "id": "chessscene_fmt",
+<<<<<<< HEAD
+      "community": 4,
+=======
       "community": 6,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "fmt()"
     },
     {
@@ -243,7 +306,11 @@
       "source_file": "client/src/test/utils.test.ts",
       "source_location": "L1",
       "id": "client_src_test_utils_test_ts",
+<<<<<<< HEAD
+      "community": 25,
+=======
       "community": 28,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "utils.test.ts"
     },
     {
@@ -252,7 +319,11 @@
       "source_file": "client/src/test/setup.ts",
       "source_location": "L1",
       "id": "client_src_test_setup_ts",
+<<<<<<< HEAD
+      "community": 26,
+=======
       "community": 29,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "setup.ts"
     },
     {
@@ -261,7 +332,11 @@
       "source_file": "client/src/stores/gameStore.ts",
       "source_location": "L1",
       "id": "client_src_stores_gamestore_ts",
+<<<<<<< HEAD
+      "community": 27,
+=======
       "community": 30,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "gamestore.ts"
     },
     {
@@ -270,7 +345,11 @@
       "source_file": "client/src/stores/houseStore.ts",
       "source_location": "L1",
       "id": "client_src_stores_housestore_ts",
+<<<<<<< HEAD
+      "community": 28,
+=======
       "community": 31,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "housestore.ts"
     },
     {
@@ -279,7 +358,11 @@
       "source_file": "client/src/stores/userStore.ts",
       "source_location": "L1",
       "id": "client_src_stores_userstore_ts",
+<<<<<<< HEAD
+      "community": 29,
+=======
       "community": 32,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "userstore.ts"
     },
     {
@@ -315,7 +398,11 @@
       "source_file": "client/src/utils/captureEffects.ts",
       "source_location": "L80",
       "id": "captureeffects_createbolt",
+<<<<<<< HEAD
+      "community": 5,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "createbolt()"
     },
     {
@@ -351,7 +438,11 @@
       "source_file": "client/src/utils/captureEffects.ts",
       "source_location": "L122",
       "id": "captureeffects_disposemeshes",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "disposemeshes()"
     },
     {
@@ -360,7 +451,11 @@
       "source_file": "client/src/utils/chessCoords.ts",
       "source_location": "L1",
       "id": "client_src_utils_chesscoords_ts",
+<<<<<<< HEAD
+      "community": 4,
+=======
       "community": 6,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "chesscoords.ts"
     },
     {
@@ -369,7 +464,11 @@
       "source_file": "client/src/utils/chessCoords.ts",
       "source_location": "L10",
       "id": "chesscoords_squaretoxz",
+<<<<<<< HEAD
+      "community": 4,
+=======
       "community": 6,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "squaretoxz()"
     },
     {
@@ -378,7 +477,11 @@
       "source_file": "client/src/utils/chessCoords.ts",
       "source_location": "L20",
       "id": "chesscoords_indicestosquare",
+<<<<<<< HEAD
+      "community": 4,
+=======
       "community": 6,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "indicestosquare()"
     },
     {
@@ -387,7 +490,11 @@
       "source_file": "client/src/utils/chessCoords.ts",
       "source_location": "L28",
       "id": "chesscoords_islightsquare",
+<<<<<<< HEAD
+      "community": 4,
+=======
       "community": 6,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "islightsquare()"
     },
     {
@@ -396,7 +503,11 @@
       "source_file": "client/src/utils/Spring.ts",
       "source_location": "L1",
       "id": "client_src_utils_spring_ts",
+<<<<<<< HEAD
+      "community": 9,
+=======
       "community": 11,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "spring.ts"
     },
     {
@@ -405,7 +516,11 @@
       "source_file": "client/src/utils/Spring.ts",
       "source_location": "L5",
       "id": "spring_spring",
+<<<<<<< HEAD
+      "community": 9,
+=======
       "community": 11,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "spring"
     },
     {
@@ -414,7 +529,11 @@
       "source_file": "client/src/utils/Spring.ts",
       "source_location": "L13",
       "id": "spring_spring_constructor",
+<<<<<<< HEAD
+      "community": 9,
+=======
       "community": 11,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".constructor()"
     },
     {
@@ -423,7 +542,11 @@
       "source_file": "client/src/utils/Spring.ts",
       "source_location": "L22",
       "id": "spring_spring_update",
+<<<<<<< HEAD
+      "community": 9,
+=======
       "community": 11,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".update()"
     },
     {
@@ -432,7 +555,11 @@
       "source_file": "client/src/utils/Spring.ts",
       "source_location": "L30",
       "id": "spring_spring_reset",
+<<<<<<< HEAD
+      "community": 9,
+=======
       "community": 11,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".reset()"
     },
     {
@@ -441,7 +568,11 @@
       "source_file": "client/src/utils/chessCoords.test.ts",
       "source_location": "L1",
       "id": "client_src_utils_chesscoords_test_ts",
+<<<<<<< HEAD
+      "community": 30,
+=======
       "community": 33,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "chesscoords.test.ts"
     },
     {
@@ -450,7 +581,11 @@
       "source_file": "client/src/utils/difficultyMapping.ts",
       "source_location": "L1",
       "id": "client_src_utils_difficultymapping_ts",
+<<<<<<< HEAD
+      "community": 17,
+=======
       "community": 19,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "difficultymapping.ts"
     },
     {
@@ -459,7 +594,11 @@
       "source_file": "client/src/utils/difficultyMapping.ts",
       "source_location": "L14",
       "id": "difficultymapping_difficultytoconfig",
+<<<<<<< HEAD
+      "community": 17,
+=======
       "community": 19,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "difficultytoconfig()"
     },
     {
@@ -468,7 +607,11 @@
       "source_file": "client/src/components/AuthButton.tsx",
       "source_location": "L1",
       "id": "client_src_components_authbutton_tsx",
+<<<<<<< HEAD
+      "community": 14,
+=======
       "community": 16,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "authbutton.tsx"
     },
     {
@@ -477,7 +620,11 @@
       "source_file": "client/src/components/AuthButton.tsx",
       "source_location": "L15",
       "id": "authbutton_handleoutsideclick",
+<<<<<<< HEAD
+      "community": 14,
+=======
       "community": 16,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "handleoutsideclick()"
     },
     {
@@ -486,7 +633,11 @@
       "source_file": "client/src/components/AuthButton.tsx",
       "source_location": "L20",
       "id": "authbutton_handleescape",
+<<<<<<< HEAD
+      "community": 14,
+=======
       "community": 16,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "handleescape()"
     },
     {
@@ -495,7 +646,11 @@
       "source_file": "client/src/components/LandingPage.tsx",
       "source_location": "L1",
       "id": "client_src_components_landingpage_tsx",
+<<<<<<< HEAD
+      "community": 31,
+=======
       "community": 34,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "landingpage.tsx"
     },
     {
@@ -504,7 +659,11 @@
       "source_file": "client/src/components/GameModeSelection.tsx",
       "source_location": "L1",
       "id": "client_src_components_gamemodeselection_tsx",
+<<<<<<< HEAD
+      "community": 12,
+=======
       "community": 13,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "gamemodeselection.tsx"
     },
     {
@@ -513,7 +672,11 @@
       "source_file": "client/src/components/GameModeSelection.tsx",
       "source_location": "L88",
       "id": "gamemodeselection_gamemodeselection",
+<<<<<<< HEAD
+      "community": 12,
+=======
       "community": 13,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "gamemodeselection()"
     },
     {
@@ -522,7 +685,11 @@
       "source_file": "client/src/components/GameModeSelection.tsx",
       "source_location": "L686",
       "id": "gamemodeselection_handlemousemove",
+<<<<<<< HEAD
+      "community": 12,
+=======
       "community": 13,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "handlemousemove()"
     },
     {
@@ -531,7 +698,11 @@
       "source_file": "client/src/components/GameModeSelection.tsx",
       "source_location": "L695",
       "id": "gamemodeselection_handlemouseleave",
+<<<<<<< HEAD
+      "community": 12,
+=======
       "community": 13,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "handlemouseleave()"
     },
     {
@@ -540,7 +711,11 @@
       "source_file": "client/src/components/ProfileModal.tsx",
       "source_location": "L1",
       "id": "client_src_components_profilemodal_tsx",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "profilemodal.tsx"
     },
     {
@@ -549,7 +724,11 @@
       "source_file": "client/src/components/ProfileModal.tsx",
       "source_location": "L72",
       "id": "profilemodal_handleescape",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "handleescape()"
     },
     {
@@ -558,7 +737,11 @@
       "source_file": "client/src/components/ProfileModal.tsx",
       "source_location": "L85",
       "id": "profilemodal_savedisplayname",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "savedisplayname()"
     },
     {
@@ -567,7 +750,11 @@
       "source_file": "client/src/components/ProfileModal.tsx",
       "source_location": "L101",
       "id": "profilemodal_savehouse",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "savehouse()"
     },
     {
@@ -576,7 +763,11 @@
       "source_file": "client/src/components/ProfileModal.tsx",
       "source_location": "L108",
       "id": "profilemodal_fmtduration",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "fmtduration()"
     },
     {
@@ -585,7 +776,11 @@
       "source_file": "client/src/components/ProfileModal.tsx",
       "source_location": "L114",
       "id": "profilemodal_fmtdate",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "fmtdate()"
     },
     {
@@ -594,7 +789,11 @@
       "source_file": "client/src/components/ProfileModal.tsx",
       "source_location": "L176",
       "id": "profilemodal_resultcolor",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "resultcolor()"
     },
     {
@@ -603,7 +802,11 @@
       "source_file": "client/src/components/HouseSelection.tsx",
       "source_location": "L1",
       "id": "client_src_components_houseselection_tsx",
+<<<<<<< HEAD
+      "community": 13,
+=======
       "community": 14,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "houseselection.tsx"
     },
     {
@@ -612,7 +815,11 @@
       "source_file": "client/src/components/HouseSelection.tsx",
       "source_location": "L59",
       "id": "houseselection_selecthouse",
+<<<<<<< HEAD
+      "community": 13,
+=======
       "community": 14,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "selecthouse()"
     },
     {
@@ -621,7 +828,11 @@
       "source_file": "client/src/components/HouseSelection.tsx",
       "source_location": "L280",
       "id": "houseselection_handlemousemove",
+<<<<<<< HEAD
+      "community": 13,
+=======
       "community": 14,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "handlemousemove()"
     },
     {
@@ -630,7 +841,11 @@
       "source_file": "client/src/components/HouseSelection.tsx",
       "source_location": "L289",
       "id": "houseselection_handlemouseleave",
+<<<<<<< HEAD
+      "community": 13,
+=======
       "community": 14,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "handlemouseleave()"
     },
     {
@@ -639,7 +854,11 @@
       "source_file": "client/src/hooks/useStockfish.ts",
       "source_location": "L1",
       "id": "client_src_hooks_usestockfish_ts",
+<<<<<<< HEAD
+      "community": 18,
+=======
       "community": 20,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "usestockfish.ts"
     },
     {
@@ -648,7 +867,11 @@
       "source_file": "client/src/hooks/useStockfish.ts",
       "source_location": "L12",
       "id": "usestockfish_usestockfish",
+<<<<<<< HEAD
+      "community": 18,
+=======
       "community": 20,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "usestockfish()"
     },
     {
@@ -657,7 +880,11 @@
       "source_file": "client/src/lib/supabaseClient.ts",
       "source_location": "L1",
       "id": "client_src_lib_supabaseclient_ts",
+<<<<<<< HEAD
+      "community": 32,
+=======
       "community": 35,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "supabaseclient.ts"
     },
     {
@@ -666,7 +893,11 @@
       "source_file": "client/src/workers/stockfish.worker.ts",
       "source_location": "L1",
       "id": "client_src_workers_stockfish_worker_ts",
+<<<<<<< HEAD
+      "community": 33,
+=======
       "community": 36,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "stockfish.worker.ts"
     },
     {
@@ -675,7 +906,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L1",
       "id": "client_src_geometry_piecefactory_ts",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "piecefactory.ts"
     },
     {
@@ -684,7 +919,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L23",
       "id": "piecefactory_mergegrouptosinglemesh",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "mergegrouptosinglemesh()"
     },
     {
@@ -693,7 +932,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L75",
       "id": "piecefactory_buildlathegeometry",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "buildlathegeometry()"
     },
     {
@@ -702,7 +945,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L91",
       "id": "piecefactory_buildrookgroup",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "buildrookgroup()"
     },
     {
@@ -711,7 +958,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L220",
       "id": "piecefactory_buildkinggroup",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "buildkinggroup()"
     },
     {
@@ -720,7 +971,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L525",
       "id": "piecefactory_addqueencrown",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "addqueencrown()"
     },
     {
@@ -729,7 +984,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L544",
       "id": "piecefactory_buildbishopgroup",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "buildbishopgroup()"
     },
     {
@@ -738,7 +997,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L617",
       "id": "piecefactory_buildknightgroup",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "buildknightgroup()"
     },
     {
@@ -747,7 +1010,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L856",
       "id": "piecefactory_buildpawngroup",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "buildpawngroup()"
     },
     {
@@ -756,7 +1023,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L955",
       "id": "piecefactory_injectrimlight",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "injectrimlight()"
     },
     {
@@ -765,7 +1036,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L992",
       "id": "piecefactory_createpiecegroup",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "createpiecegroup()"
     },
     {
@@ -774,7 +1049,11 @@
       "source_file": "client/src/geometry/PieceFactory.ts",
       "source_location": "L1039",
       "id": "piecefactory_disposepiecegroup",
+<<<<<<< HEAD
+      "community": 2,
+=======
       "community": 5,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "disposepiecegroup()"
     },
     {
@@ -783,7 +1062,11 @@
       "source_file": "client/src/geometry/chessPieceProfiles.ts",
       "source_location": "L1",
       "id": "client_src_geometry_chesspieceprofiles_ts",
+<<<<<<< HEAD
+      "community": 34,
+=======
       "community": 37,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "chesspieceprofiles.ts"
     },
     {
@@ -792,7 +1075,11 @@
       "source_file": "client/src/geometry/gltfPieceCache.ts",
       "source_location": "L1",
       "id": "client_src_geometry_gltfpiececache_ts",
+<<<<<<< HEAD
+      "community": 10,
+=======
       "community": 12,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "gltfpiececache.ts"
     },
     {
@@ -801,7 +1088,11 @@
       "source_file": "client/src/geometry/gltfPieceCache.ts",
       "source_location": "L46",
       "id": "gltfpiececache_modelsready",
+<<<<<<< HEAD
+      "community": 10,
+=======
       "community": 12,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "modelsready()"
     },
     {
@@ -810,7 +1101,11 @@
       "source_file": "client/src/geometry/gltfPieceCache.ts",
       "source_location": "L54",
       "id": "gltfpiececache_onmodelsready",
+<<<<<<< HEAD
+      "community": 10,
+=======
       "community": 12,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "onmodelsready()"
     },
     {
@@ -819,7 +1114,11 @@
       "source_file": "client/src/geometry/gltfPieceCache.ts",
       "source_location": "L66",
       "id": "gltfpiececache_preloadpiecemodels",
+<<<<<<< HEAD
+      "community": 10,
+=======
       "community": 12,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "preloadpiecemodels()"
     },
     {
@@ -828,7 +1127,11 @@
       "source_file": "client/src/geometry/gltfPieceCache.ts",
       "source_location": "L103",
       "id": "gltfpiececache_clonemodelgroup",
+<<<<<<< HEAD
+      "community": 10,
+=======
       "community": 12,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "clonemodelgroup()"
     },
     {
@@ -837,7 +1140,11 @@
       "source_file": "client/src/effects/WingardiumLeviosa.ts",
       "source_location": "L1",
       "id": "client_src_effects_wingardiumleviosa_ts",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "wingardiumleviosa.ts"
     },
     {
@@ -846,7 +1153,11 @@
       "source_file": "client/src/effects/WingardiumLeviosa.ts",
       "source_location": "L22",
       "id": "wingardiumleviosa_wingardiumleviosaeffect",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "wingardiumleviosaeffect"
     },
     {
@@ -855,7 +1166,11 @@
       "source_file": "client/src/effects/WingardiumLeviosa.ts",
       "source_location": "L38",
       "id": "wingardiumleviosa_wingardiumleviosaeffect_constructor",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".constructor()"
     },
     {
@@ -873,7 +1188,11 @@
       "source_file": "client/src/effects/WingardiumLeviosa.ts",
       "source_location": "L111",
       "id": "wingardiumleviosa_wingardiumleviosaeffect_iscomplete",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".iscomplete()"
     },
     {
@@ -882,7 +1201,11 @@
       "source_file": "client/src/effects/WingardiumLeviosa.ts",
       "source_location": "L115",
       "id": "wingardiumleviosa_wingardiumleviosaeffect_dispose",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".dispose()"
     },
     {
@@ -891,7 +1214,11 @@
       "source_file": "client/src/effects/Fiendfyre.ts",
       "source_location": "L1",
       "id": "client_src_effects_fiendfyre_ts",
+<<<<<<< HEAD
+      "community": 8,
+=======
       "community": 10,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "fiendfyre.ts"
     },
     {
@@ -900,7 +1227,11 @@
       "source_file": "client/src/effects/Fiendfyre.ts",
       "source_location": "L145",
       "id": "fiendfyre_fiendfyreeffect",
+<<<<<<< HEAD
+      "community": 8,
+=======
       "community": 10,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "fiendfyreeffect"
     },
     {
@@ -909,7 +1240,11 @@
       "source_file": "client/src/effects/Fiendfyre.ts",
       "source_location": "L166",
       "id": "fiendfyre_fiendfyreeffect_constructor",
+<<<<<<< HEAD
+      "community": 8,
+=======
       "community": 10,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".constructor()"
     },
     {
@@ -918,7 +1253,11 @@
       "source_file": "client/src/effects/Fiendfyre.ts",
       "source_location": "L227",
       "id": "fiendfyre_fiendfyreeffect_update",
+<<<<<<< HEAD
+      "community": 8,
+=======
       "community": 10,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".update()"
     },
     {
@@ -927,7 +1266,11 @@
       "source_file": "client/src/effects/Fiendfyre.ts",
       "source_location": "L310",
       "id": "fiendfyre_fiendfyreeffect_iscomplete",
+<<<<<<< HEAD
+      "community": 8,
+=======
       "community": 10,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".iscomplete()"
     },
     {
@@ -936,7 +1279,11 @@
       "source_file": "client/src/effects/Fiendfyre.ts",
       "source_location": "L314",
       "id": "fiendfyre_fiendfyreeffect_dispose",
+<<<<<<< HEAD
+      "community": 8,
+=======
       "community": 10,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".dispose()"
     },
     {
@@ -999,7 +1346,11 @@
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L1",
       "id": "client_src_effects_knightcharge_ts",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "knightcharge.ts"
     },
     {
@@ -1008,7 +1359,11 @@
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L97",
       "id": "knightcharge_knightchargeeffect",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "knightchargeeffect"
     },
     {
@@ -1017,7 +1372,11 @@
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L146",
       "id": "knightcharge_knightchargeeffect_constructor",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".constructor()"
     },
     {
@@ -1026,7 +1385,11 @@
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L222",
       "id": "knightcharge_knightchargeeffect_update",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".update()"
     },
     {
@@ -1035,7 +1398,11 @@
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L462",
       "id": "knightcharge_knightchargeeffect_buildswordtrail",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "._buildswordtrail()"
     },
     {
@@ -1044,7 +1411,11 @@
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L492",
       "id": "knightcharge_knightchargeeffect_iscomplete",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".iscomplete()"
     },
     {
@@ -1053,7 +1424,11 @@
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L496",
       "id": "knightcharge_knightchargeeffect_dispose",
+<<<<<<< HEAD
+      "community": 1,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".dispose()"
     },
     {
@@ -1062,7 +1437,11 @@
       "source_file": "client/src/effects/types.ts",
       "source_location": "L1",
       "id": "client_src_effects_types_ts",
+<<<<<<< HEAD
+      "community": 35,
+=======
       "community": 38,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "types.ts"
     },
     {
@@ -1071,7 +1450,11 @@
       "source_file": "client/src/effects/Reducto.ts",
       "source_location": "L1",
       "id": "client_src_effects_reducto_ts",
+<<<<<<< HEAD
+      "community": 5,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "reducto.ts"
     },
     {
@@ -1080,7 +1463,11 @@
       "source_file": "client/src/effects/Reducto.ts",
       "source_location": "L29",
       "id": "reducto_reductoeffect",
+<<<<<<< HEAD
+      "community": 5,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "reductoeffect"
     },
     {
@@ -1089,7 +1476,11 @@
       "source_file": "client/src/effects/Reducto.ts",
       "source_location": "L46",
       "id": "reducto_reductoeffect_constructor",
+<<<<<<< HEAD
+      "community": 5,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".constructor()"
     },
     {
@@ -1107,7 +1498,11 @@
       "source_file": "client/src/effects/Reducto.ts",
       "source_location": "L136",
       "id": "reducto_reductoeffect_iscomplete",
+<<<<<<< HEAD
+      "community": 5,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".iscomplete()"
     },
     {
@@ -1116,7 +1511,11 @@
       "source_file": "client/src/effects/Reducto.ts",
       "source_location": "L140",
       "id": "reducto_reductoeffect_dispose",
+<<<<<<< HEAD
+      "community": 5,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".dispose()"
     },
     {
@@ -1125,7 +1524,11 @@
       "source_file": "client/src/effects/ExpectoPatronum.ts",
       "source_location": "L1",
       "id": "client_src_effects_expectopatronum_ts",
+<<<<<<< HEAD
+      "community": 11,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "expectopatronum.ts"
     },
     {
@@ -1134,7 +1537,11 @@
       "source_file": "client/src/effects/ExpectoPatronum.ts",
       "source_location": "L26",
       "id": "expectopatronum_expectopatronumeffect",
+<<<<<<< HEAD
+      "community": 11,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "expectopatronumeffect"
     },
     {
@@ -1143,7 +1550,11 @@
       "source_file": "client/src/effects/ExpectoPatronum.ts",
       "source_location": "L44",
       "id": "expectopatronum_expectopatronumeffect_constructor",
+<<<<<<< HEAD
+      "community": 11,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".constructor()"
     },
     {
@@ -1161,7 +1572,11 @@
       "source_file": "client/src/effects/ExpectoPatronum.ts",
       "source_location": "L150",
       "id": "expectopatronum_expectopatronumeffect_iscomplete",
+<<<<<<< HEAD
+      "community": 11,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".iscomplete()"
     },
     {
@@ -1170,7 +1585,11 @@
       "source_file": "client/src/effects/ExpectoPatronum.ts",
       "source_location": "L154",
       "id": "expectopatronum_expectopatronumeffect_dispose",
+<<<<<<< HEAD
+      "community": 11,
+=======
       "community": 0,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".dispose()"
     },
     {
@@ -1179,7 +1598,11 @@
       "source_file": "client/src/effects/index.ts",
       "source_location": "L1",
       "id": "client_src_effects_index_ts",
+<<<<<<< HEAD
+      "community": 19,
+=======
       "community": 21,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "index.ts"
     },
     {
@@ -1188,7 +1611,11 @@
       "source_file": "client/src/effects/index.ts",
       "source_location": "L29",
       "id": "index_createcaptureeffect",
+<<<<<<< HEAD
+      "community": 19,
+=======
       "community": 21,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "createcaptureeffect()"
     },
     {
@@ -1251,7 +1678,11 @@
       "source_file": "client/src/effects/AvadaKedavra.ts",
       "source_location": "L1",
       "id": "client_src_effects_avadakedavra_ts",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "avadakedavra.ts"
     },
     {
@@ -1260,7 +1691,11 @@
       "source_file": "client/src/effects/AvadaKedavra.ts",
       "source_location": "L83",
       "id": "avadakedavra_avadakedavraeffect",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "avadakedavraeffect"
     },
     {
@@ -1269,7 +1704,11 @@
       "source_file": "client/src/effects/AvadaKedavra.ts",
       "source_location": "L105",
       "id": "avadakedavra_avadakedavraeffect_constructor",
+<<<<<<< HEAD
+      "community": 5,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".constructor()"
     },
     {
@@ -1278,7 +1717,11 @@
       "source_file": "client/src/effects/AvadaKedavra.ts",
       "source_location": "L149",
       "id": "avadakedavra_avadakedavraeffect_update",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".update()"
     },
     {
@@ -1287,7 +1730,11 @@
       "source_file": "client/src/effects/AvadaKedavra.ts",
       "source_location": "L249",
       "id": "avadakedavra_avadakedavraeffect_iscomplete",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".iscomplete()"
     },
     {
@@ -1296,7 +1743,11 @@
       "source_file": "client/src/effects/AvadaKedavra.ts",
       "source_location": "L253",
       "id": "avadakedavra_avadakedavraeffect_dispose",
+<<<<<<< HEAD
+      "community": 3,
+=======
       "community": 4,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": ".dispose()"
     },
     {
@@ -1305,7 +1756,11 @@
       "source_file": "client/src/data/captureSounds.ts",
       "source_location": "L1",
       "id": "client_src_data_capturesounds_ts",
+<<<<<<< HEAD
+      "community": 36,
+=======
       "community": 39,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "capturesounds.ts"
     },
     {
@@ -1314,7 +1769,11 @@
       "source_file": "client/src/data/captureAnimations.ts",
       "source_location": "L1",
       "id": "client_src_data_captureanimations_ts",
+<<<<<<< HEAD
+      "community": 37,
+=======
       "community": 40,
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "norm_label": "captureanimations.ts"
     },
     {
@@ -1323,6 +1782,15 @@
       "source_file": "client/src/data/houseThemes.ts",
       "source_location": "L1",
       "id": "client_src_data_housethemes_ts",
+<<<<<<< HEAD
+      "community": 38,
+      "norm_label": "housethemes.ts"
+    },
+    {
+      "label": "client/index.html (entry point)",
+      "file_type": "document",
+      "source_file": "client/index.html",
+=======
       "community": 41,
       "norm_label": "housethemes.ts"
     },
@@ -1330,11 +1798,22 @@
       "label": "The Sorcerer's Board (Project)",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "client_indexhtml",
+      "community": 20,
+      "norm_label": "client/index.html (entry point)"
+    },
+    {
+      "label": "client/src/main.tsx (app entry script)",
+      "file_type": "document",
+      "source_file": "client/index.html",
+=======
       "id": "readme_sorcerers_board",
       "community": 1,
       "norm_label": "the sorcerer's board (project)"
@@ -1343,11 +1822,22 @@
       "label": "React 18",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "client_main_tsx",
+      "community": 20,
+      "norm_label": "client/src/main.tsx (app entry script)"
+    },
+    {
+      "label": "Vite + React + TypeScript template (client/README.md)",
+      "file_type": "document",
+      "source_file": "client/README.md",
+=======
       "id": "readme_react18",
       "community": 1,
       "norm_label": "react 18"
@@ -1356,11 +1846,22 @@
       "label": "Vite",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "client_readme_vite_react_ts",
+      "community": 15,
+      "norm_label": "vite + react + typescript template (client/readme.md)"
+    },
+    {
+      "label": "@vitejs/plugin-react (Oxc)",
+      "file_type": "document",
+      "source_file": "client/README.md",
+=======
       "id": "readme_vite",
       "community": 1,
       "norm_label": "vite"
@@ -1369,11 +1870,22 @@
       "label": "Three.js r160",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "client_readme_vitejs_plugin_react",
+      "community": 15,
+      "norm_label": "@vitejs/plugin-react (oxc)"
+    },
+    {
+      "label": "@vitejs/plugin-react-swc (SWC)",
+      "file_type": "document",
+      "source_file": "client/README.md",
+=======
       "id": "readme_threejs",
       "community": 3,
       "norm_label": "three.js r160"
@@ -1382,11 +1894,22 @@
       "label": "@react-three/fiber",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "client_readme_vitejs_plugin_react_swc",
+      "community": 15,
+      "norm_label": "@vitejs/plugin-react-swc (swc)"
+    },
+    {
+      "label": "Wand decorative image \u2014 a detailed 3D-rendered silver/metallic wizard wand with ornate bulbous sections along its shaft, depicted diagonally on a white background; used as a decorative or UI asset for the Harry Potter chess theme",
+      "file_type": "image",
+      "source_file": "client/public/wand.webp",
+=======
       "id": "readme_react_three_fiber",
       "community": 1,
       "norm_label": "@react-three/fiber"
@@ -1395,11 +1918,22 @@
       "label": "chess.js",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "wand_image",
+      "community": 6,
+      "norm_label": "wand decorative image \u2014 a detailed 3d-rendered silver/metallic wizard wand with ornate bulbous sections along its shaft, depicted diagonally on a white background; used as a decorative or ui asset for the harry potter chess theme"
+    },
+    {
+      "label": "Wand cursor SVG icon \u2014 a 48x48 stylized wizard wand drawn diagonally from bottom-right (gold pommel and binding rings) to top-left (glowing tip with sparkle cross); dark wooden shaft with gold accents; intended as a custom mouse cursor for the Harry Potter chess app",
+      "file_type": "image",
+      "source_file": "client/public/wand-cursor.svg",
+=======
       "id": "readme_chessjs",
       "community": 3,
       "norm_label": "chess.js"
@@ -1408,11 +1942,22 @@
       "label": "Stockfish.js (WASM)",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "wand_cursor_icon",
+      "community": 6,
+      "norm_label": "wand cursor svg icon \u2014 a 48x48 stylized wizard wand drawn diagonally from bottom-right (gold pommel and binding rings) to top-left (glowing tip with sparkle cross); dark wooden shaft with gold accents; intended as a custom mouse cursor for the harry potter chess app"
+    },
+    {
+      "label": "SVG sprite sheet containing five social/UI icons: Bluesky bird logo, Discord game controller logo, a documentation/code icon (purple, depicts a document with code brackets), GitHub Octocat logo, a social/user-profile icon (purple, person with star badge), and an X (formerly Twitter) logo; all rendered in dark fill or purple stroke styles",
+      "file_type": "image",
+      "source_file": "client/public/icons.svg",
+=======
       "id": "readme_stockfishjs",
       "community": 1,
       "norm_label": "stockfish.js (wasm)"
@@ -1421,11 +1966,22 @@
       "label": "Socket.io 4",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "icons_sprite",
+      "community": 6,
+      "norm_label": "svg sprite sheet containing five social/ui icons: bluesky bird logo, discord game controller logo, a documentation/code icon (purple, depicts a document with code brackets), github octocat logo, a social/user-profile icon (purple, person with star badge), and an x (formerly twitter) logo; all rendered in dark fill or purple stroke styles"
+    },
+    {
+      "label": "Wand cursor PNG \u2014 a small rasterized version of the wand cursor image showing the same metallic ornate wizard wand depicted diagonally; used as a fallback PNG cursor asset",
+      "file_type": "image",
+      "source_file": "client/public/wand-cursor.png",
+=======
       "id": "readme_socketio",
       "community": 1,
       "norm_label": "socket.io 4"
@@ -1434,11 +1990,22 @@
       "label": "Zustand",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "wand_cursor_png",
+      "community": 6,
+      "norm_label": "wand cursor png \u2014 a small rasterized version of the wand cursor image showing the same metallic ornate wizard wand depicted diagonally; used as a fallback png cursor asset"
+    },
+    {
+      "label": "Favicon SVG \u2014 a lightning bolt / power symbol shape filled with vibrant purple (#863bff) with internal glowing highlight ellipses in lighter purple and blue; rendered at 48x46; used as the browser tab icon for the Wizard's Chess app",
+      "file_type": "image",
+      "source_file": "client/public/favicon.svg",
+=======
       "id": "readme_zustand",
       "community": 3,
       "norm_label": "zustand"
@@ -1447,11 +2014,22 @@
       "label": "Node.js 20",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "favicon_icon",
+      "community": 6,
+      "norm_label": "favicon svg \u2014 a lightning bolt / power symbol shape filled with vibrant purple (#863bff) with internal glowing highlight ellipses in lighter purple and blue; rendered at 48x46; used as the browser tab icon for the wizard's chess app"
+    },
+    {
+      "label": "Hero section illustration \u2014 an isometric 3D render of two stacked rounded-square platform/card shapes; the top card is white/glass with a subtle outline, the bottom card is filled with a rich purple gradient with reflective highlights; likely used as a hero graphic or feature illustration on the landing page",
+      "file_type": "image",
+      "source_file": "client/src/assets/hero.png",
+=======
       "id": "readme_nodejs",
       "community": 1,
       "norm_label": "node.js 20"
@@ -1460,11 +2038,22 @@
       "label": "Express 5",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "hero_image",
+      "community": 6,
+      "norm_label": "hero section illustration \u2014 an isometric 3d render of two stacked rounded-square platform/card shapes; the top card is white/glass with a subtle outline, the bottom card is filled with a rich purple gradient with reflective highlights; likely used as a hero graphic or feature illustration on the landing page"
+    },
+    {
+      "label": "Hogwarts castle background image \u2014 a dramatic cinematic photograph or render of Hogwarts castle at night, illuminated from within against a dark moody sky with a full moon; the castle sits on rocky cliffs beside a lake with a small boat visible; used as a full-screen background for the Harry Potter chess application",
+      "file_type": "image",
+      "source_file": "client/src/assets/hogwarts_BG.png",
+=======
       "id": "readme_express5",
       "community": 1,
       "norm_label": "express 5"
@@ -1473,11 +2062,22 @@
       "label": "Supabase (Postgres + Auth + RLS)",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "hogwarts_bg_image",
+      "community": 6,
+      "norm_label": "hogwarts castle background image \u2014 a dramatic cinematic photograph or render of hogwarts castle at night, illuminated from within against a dark moody sky with a full moon; the castle sits on rocky cliffs beside a lake with a small boat visible; used as a full-screen background for the harry potter chess application"
+    },
+    {
+      "label": "Vite build tool logo SVG \u2014 depicts the official Vite lightning bolt icon in purple (#9135ff) with internal glow effects, flanked by parentheses characters; the title element identifies it as 'Vite'; used as a framework branding asset",
+      "file_type": "image",
+      "source_file": "client/src/assets/vite.svg",
+=======
       "id": "readme_supabase",
       "community": 1,
       "norm_label": "supabase (postgres + auth + rls)"
@@ -1486,11 +2086,22 @@
       "label": "Tailwind CSS v3",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "vite_logo",
+      "community": 21,
+      "norm_label": "vite build tool logo svg \u2014 depicts the official vite lightning bolt icon in purple (#9135ff) with internal glow effects, flanked by parentheses characters; the title element identifies it as 'vite'; used as a framework branding asset"
+    },
+    {
+      "label": "React framework logo SVG \u2014 the official React atom/orbital logo rendered in cyan/aqua (#00D8FF) with the characteristic three elliptical orbits and central circle; used as a framework branding asset",
+      "file_type": "image",
+      "source_file": "client/src/assets/react.svg",
+=======
       "id": "readme_tailwindcss",
       "community": 1,
       "norm_label": "tailwind css v3"
@@ -1499,11 +2110,114 @@
       "label": "Vercel (client deployment)",
       "file_type": "document",
       "source_file": "README.md",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
+<<<<<<< HEAD
+      "id": "react_logo",
+      "community": 21,
+      "norm_label": "react framework logo svg \u2014 the official react atom/orbital logo rendered in cyan/aqua (#00d8ff) with the characteristic three elliptical orbits and central circle; used as a framework branding asset"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/public/stockfish-nnue-16-single.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "client_public_stockfish_nnue_16_single_js",
+      "_tgt": "stockfish_nnue_16_single_i",
+      "source": "client_public_stockfish_nnue_16_single_js",
+      "target": "stockfish_nnue_16_single_i",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/public/stockfish-nnue-16-single.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "client_public_stockfish_nnue_16_single_js",
+      "_tgt": "stockfish_nnue_16_single_t",
+      "source": "client_public_stockfish_nnue_16_single_js",
+      "target": "stockfish_nnue_16_single_t",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/public/stockfish-nnue-16-single.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "client_public_stockfish_nnue_16_single_js",
+      "_tgt": "stockfish_nnue_16_single_e",
+      "source": "client_public_stockfish_nnue_16_single_js",
+      "target": "stockfish_nnue_16_single_e",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/public/stockfish-nnue-16-single.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "client_public_stockfish_nnue_16_single_js",
+      "_tgt": "stockfish_nnue_16_single_f",
+      "source": "client_public_stockfish_nnue_16_single_js",
+      "target": "stockfish_nnue_16_single_f",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/public/stockfish-nnue-16-single.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "client_public_stockfish_nnue_16_single_js",
+      "_tgt": "stockfish_nnue_16_single_l",
+      "source": "client_public_stockfish_nnue_16_single_js",
+      "target": "stockfish_nnue_16_single_l",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/main.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_src": "client_src_main_tsx",
+      "_tgt": "client_src_app_tsx",
+      "source": "client_src_app_tsx",
+      "target": "client_src_main_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/scenes/ChessScene.tsx",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_src": "client_src_scenes_chessscene_tsx",
+      "_tgt": "chessscene_findkingsquare",
+      "source": "client_src_scenes_chessscene_tsx",
+      "target": "chessscene_findkingsquare",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/scenes/ChessScene.tsx",
+      "source_location": "L1263",
+      "weight": 1.0,
+      "_src": "client_src_scenes_chessscene_tsx",
+      "_tgt": "chessscene_check",
+      "source": "client_src_scenes_chessscene_tsx",
+      "target": "chessscene_check",
+=======
       "id": "readme_vercel",
       "community": 1,
       "norm_label": "vercel (client deployment)"
@@ -4012,11 +4726,21 @@
       "_tgt": "transfiguration_transfigurationeffect_dispose",
       "source": "transfiguration_transfigurationeffect",
       "target": "transfiguration_transfigurationeffect_dispose",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+<<<<<<< HEAD
+      "source_file": "client/src/scenes/ChessScene.tsx",
+      "source_location": "L2227",
+      "weight": 1.0,
+      "_src": "client_src_scenes_chessscene_tsx",
+      "_tgt": "chessscene_fmt",
+      "source": "client_src_scenes_chessscene_tsx",
+      "target": "chessscene_fmt",
+=======
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L97",
       "weight": 1.0,
@@ -4084,10 +4808,33 @@
       "_tgt": "knightcharge_knightchargeeffect_dispose",
       "source": "knightcharge_knightchargeeffect",
       "target": "knightcharge_knightchargeeffect_dispose",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
+<<<<<<< HEAD
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/scenes/ChessScene.tsx",
+      "source_location": "L116",
+      "weight": 1.0,
+      "_src": "chessscene_findkingsquare",
+      "_tgt": "chesscoords_indicestosquare",
+      "source": "chessscene_findkingsquare",
+      "target": "chesscoords_indicestosquare"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "client_src_utils_captureeffects_ts",
+      "_tgt": "captureeffects_createdebrisexplosion",
+      "source": "client_src_utils_captureeffects_ts",
+      "target": "captureeffects_createdebrisexplosion",
+=======
       "confidence": "EXTRACTED",
       "source_file": "client/src/effects/KnightCharge.ts",
       "source_location": "L329",
@@ -4108,11 +4855,69 @@
       "_tgt": "knightcharge_knightchargeeffect_dispose",
       "source": "knightcharge_knightchargeeffect_update",
       "target": "knightcharge_knightchargeeffect_dispose",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+<<<<<<< HEAD
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_src": "client_src_utils_captureeffects_ts",
+      "_tgt": "captureeffects_createparticleburst",
+      "source": "client_src_utils_captureeffects_ts",
+      "target": "captureeffects_createparticleburst",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_src": "client_src_utils_captureeffects_ts",
+      "_tgt": "captureeffects_createbolt",
+      "source": "client_src_utils_captureeffects_ts",
+      "target": "captureeffects_createbolt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_src": "client_src_utils_captureeffects_ts",
+      "_tgt": "captureeffects_advancebolt",
+      "source": "client_src_utils_captureeffects_ts",
+      "target": "captureeffects_advancebolt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L113",
+      "weight": 1.0,
+      "_src": "client_src_utils_captureeffects_ts",
+      "_tgt": "captureeffects_clamp",
+      "source": "client_src_utils_captureeffects_ts",
+      "target": "captureeffects_clamp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L118",
+      "weight": 1.0,
+      "_src": "client_src_utils_captureeffects_ts",
+      "_tgt": "captureeffects_prog",
+      "source": "client_src_utils_captureeffects_ts",
+      "target": "captureeffects_prog",
+=======
       "source_file": "client/src/effects/Reducto.ts",
       "source_location": "L29",
       "weight": 1.0,
@@ -4168,11 +4973,189 @@
       "_tgt": "reducto_reductoeffect_dispose",
       "source": "reducto_reductoeffect",
       "target": "reducto_reductoeffect_dispose",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+<<<<<<< HEAD
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L122",
+      "weight": 1.0,
+      "_src": "client_src_utils_captureeffects_ts",
+      "_tgt": "captureeffects_disposemeshes",
+      "source": "client_src_utils_captureeffects_ts",
+      "target": "captureeffects_disposemeshes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/WingardiumLeviosa.ts",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_src": "wingardiumleviosa_wingardiumleviosaeffect_update",
+      "_tgt": "captureeffects_createdebrisexplosion",
+      "source": "captureeffects_createdebrisexplosion",
+      "target": "wingardiumleviosa_wingardiumleviosaeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L355",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect_update",
+      "_tgt": "captureeffects_createdebrisexplosion",
+      "source": "captureeffects_createdebrisexplosion",
+      "target": "knightcharge_knightchargeeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L92",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect_update",
+      "_tgt": "captureeffects_createdebrisexplosion",
+      "source": "captureeffects_createdebrisexplosion",
+      "target": "reducto_reductoeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L241",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect_update",
+      "_tgt": "captureeffects_createdebrisexplosion",
+      "source": "captureeffects_createdebrisexplosion",
+      "target": "queensword_queenswordeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Fiendfyre.ts",
+      "source_location": "L271",
+      "weight": 1.0,
+      "_src": "fiendfyre_fiendfyreeffect_update",
+      "_tgt": "captureeffects_createparticleburst",
+      "source": "captureeffects_createparticleburst",
+      "target": "fiendfyre_fiendfyreeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Transfiguration.ts",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_src": "transfiguration_transfigurationeffect_constructor",
+      "_tgt": "captureeffects_createparticleburst",
+      "source": "captureeffects_createparticleburst",
+      "target": "transfiguration_transfigurationeffect_constructor"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L376",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect_update",
+      "_tgt": "captureeffects_createparticleburst",
+      "source": "captureeffects_createparticleburst",
+      "target": "knightcharge_knightchargeeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/ExpectoPatronum.ts",
+      "source_location": "L106",
+      "weight": 1.0,
+      "_src": "expectopatronum_expectopatronumeffect_update",
+      "_tgt": "captureeffects_createparticleburst",
+      "source": "captureeffects_createparticleburst",
+      "target": "expectopatronum_expectopatronumeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L208",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect_update",
+      "_tgt": "captureeffects_createparticleburst",
+      "source": "captureeffects_createparticleburst",
+      "target": "queensword_queenswordeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect_constructor",
+      "_tgt": "captureeffects_createbolt",
+      "source": "captureeffects_createbolt",
+      "target": "reducto_reductoeffect_constructor"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L119",
+      "weight": 1.0,
+      "_src": "avadakedavra_avadakedavraeffect_constructor",
+      "_tgt": "captureeffects_createbolt",
+      "source": "captureeffects_createbolt",
+      "target": "avadakedavra_avadakedavraeffect_constructor"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect_update",
+      "_tgt": "captureeffects_advancebolt",
+      "source": "captureeffects_advancebolt",
+      "target": "reducto_reductoeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L158",
+      "weight": 1.0,
+      "_src": "avadakedavra_avadakedavraeffect_update",
+      "_tgt": "captureeffects_advancebolt",
+      "source": "captureeffects_advancebolt",
+      "target": "avadakedavra_avadakedavraeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L119",
+      "weight": 1.0,
+      "_src": "captureeffects_prog",
+      "_tgt": "captureeffects_clamp",
+      "source": "captureeffects_clamp",
+      "target": "captureeffects_prog",
+=======
       "source_file": "client/src/effects/ExpectoPatronum.ts",
       "source_location": "L26",
       "weight": 1.0,
@@ -4372,10 +5355,418 @@
       "_tgt": "avadakedavra_avadakedavraeffect_dispose",
       "source": "avadakedavra_avadakedavraeffect",
       "target": "avadakedavra_avadakedavraeffect_dispose",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
+<<<<<<< HEAD
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/WingardiumLeviosa.ts",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_src": "wingardiumleviosa_wingardiumleviosaeffect_update",
+      "_tgt": "captureeffects_prog",
+      "source": "captureeffects_prog",
+      "target": "wingardiumleviosa_wingardiumleviosaeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Fiendfyre.ts",
+      "source_location": "L231",
+      "weight": 1.0,
+      "_src": "fiendfyre_fiendfyreeffect_update",
+      "_tgt": "captureeffects_prog",
+      "source": "captureeffects_prog",
+      "target": "fiendfyre_fiendfyreeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Transfiguration.ts",
+      "source_location": "L95",
+      "weight": 1.0,
+      "_src": "transfiguration_transfigurationeffect_update",
+      "_tgt": "captureeffects_prog",
+      "source": "captureeffects_prog",
+      "target": "transfiguration_transfigurationeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L335",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect_update",
+      "_tgt": "captureeffects_prog",
+      "source": "captureeffects_prog",
+      "target": "knightcharge_knightchargeeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect_update",
+      "_tgt": "captureeffects_prog",
+      "source": "captureeffects_prog",
+      "target": "reducto_reductoeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/ExpectoPatronum.ts",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_src": "expectopatronum_expectopatronumeffect_update",
+      "_tgt": "captureeffects_prog",
+      "source": "captureeffects_prog",
+      "target": "expectopatronum_expectopatronumeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L182",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect_update",
+      "_tgt": "captureeffects_prog",
+      "source": "captureeffects_prog",
+      "target": "queensword_queenswordeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L157",
+      "weight": 1.0,
+      "_src": "avadakedavra_avadakedavraeffect_update",
+      "_tgt": "captureeffects_prog",
+      "source": "captureeffects_prog",
+      "target": "avadakedavra_avadakedavraeffect_update"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/utils/captureEffects.ts",
+      "source_location": "L125",
+      "weight": 1.0,
+      "_src": "captureeffects_disposemeshes",
+      "_tgt": "avadakedavra_avadakedavraeffect_dispose",
+      "source": "captureeffects_disposemeshes",
+      "target": "avadakedavra_avadakedavraeffect_dispose"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/WingardiumLeviosa.ts",
+      "source_location": "L117",
+      "weight": 1.0,
+      "_src": "wingardiumleviosa_wingardiumleviosaeffect_dispose",
+      "_tgt": "captureeffects_disposemeshes",
+      "source": "captureeffects_disposemeshes",
+      "target": "wingardiumleviosa_wingardiumleviosaeffect_dispose"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Transfiguration.ts",
+      "source_location": "L184",
+      "weight": 1.0,
+      "_src": "transfiguration_transfigurationeffect_dispose",
+      "_tgt": "captureeffects_disposemeshes",
+      "source": "captureeffects_disposemeshes",
+      "target": "transfiguration_transfigurationeffect_dispose"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L528",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect_dispose",
+      "_tgt": "captureeffects_disposemeshes",
+      "source": "captureeffects_disposemeshes",
+      "target": "knightcharge_knightchargeeffect_dispose"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L146",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect_dispose",
+      "_tgt": "captureeffects_disposemeshes",
+      "source": "captureeffects_disposemeshes",
+      "target": "reducto_reductoeffect_dispose"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L342",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect_dispose",
+      "_tgt": "captureeffects_disposemeshes",
+      "source": "captureeffects_disposemeshes",
+      "target": "queensword_queenswordeffect_dispose"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/chessCoords.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "client_src_utils_chesscoords_ts",
+      "_tgt": "chesscoords_squaretoxz",
+      "source": "client_src_utils_chesscoords_ts",
+      "target": "chesscoords_squaretoxz",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/chessCoords.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_src": "client_src_utils_chesscoords_ts",
+      "_tgt": "chesscoords_indicestosquare",
+      "source": "client_src_utils_chesscoords_ts",
+      "target": "chesscoords_indicestosquare",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/chessCoords.ts",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_src": "client_src_utils_chesscoords_ts",
+      "_tgt": "chesscoords_islightsquare",
+      "source": "client_src_utils_chesscoords_ts",
+      "target": "chesscoords_islightsquare",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/Spring.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_src": "client_src_utils_spring_ts",
+      "_tgt": "spring_spring",
+      "source": "client_src_utils_spring_ts",
+      "target": "spring_spring",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/Spring.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "spring_spring",
+      "_tgt": "spring_spring_constructor",
+      "source": "spring_spring",
+      "target": "spring_spring_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/Spring.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "spring_spring",
+      "_tgt": "spring_spring_update",
+      "source": "spring_spring",
+      "target": "spring_spring_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/Spring.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_src": "spring_spring",
+      "_tgt": "spring_spring_reset",
+      "source": "spring_spring",
+      "target": "spring_spring_reset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/utils/difficultyMapping.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "client_src_utils_difficultymapping_ts",
+      "_tgt": "difficultymapping_difficultytoconfig",
+      "source": "client_src_utils_difficultymapping_ts",
+      "target": "difficultymapping_difficultytoconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/AuthButton.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "client_src_components_authbutton_tsx",
+      "_tgt": "authbutton_handleoutsideclick",
+      "source": "client_src_components_authbutton_tsx",
+      "target": "authbutton_handleoutsideclick",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/AuthButton.tsx",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_src": "client_src_components_authbutton_tsx",
+      "_tgt": "authbutton_handleescape",
+      "source": "client_src_components_authbutton_tsx",
+      "target": "authbutton_handleescape",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/GameModeSelection.tsx",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_src": "client_src_components_gamemodeselection_tsx",
+      "_tgt": "gamemodeselection_gamemodeselection",
+      "source": "client_src_components_gamemodeselection_tsx",
+      "target": "gamemodeselection_gamemodeselection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/GameModeSelection.tsx",
+      "source_location": "L686",
+      "weight": 1.0,
+      "_src": "client_src_components_gamemodeselection_tsx",
+      "_tgt": "gamemodeselection_handlemousemove",
+      "source": "client_src_components_gamemodeselection_tsx",
+      "target": "gamemodeselection_handlemousemove",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/GameModeSelection.tsx",
+      "source_location": "L695",
+      "weight": 1.0,
+      "_src": "client_src_components_gamemodeselection_tsx",
+      "_tgt": "gamemodeselection_handlemouseleave",
+      "source": "client_src_components_gamemodeselection_tsx",
+      "target": "gamemodeselection_handlemouseleave",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/ProfileModal.tsx",
+      "source_location": "L72",
+      "weight": 1.0,
+      "_src": "client_src_components_profilemodal_tsx",
+      "_tgt": "profilemodal_handleescape",
+      "source": "client_src_components_profilemodal_tsx",
+      "target": "profilemodal_handleescape",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/ProfileModal.tsx",
+      "source_location": "L85",
+      "weight": 1.0,
+      "_src": "client_src_components_profilemodal_tsx",
+      "_tgt": "profilemodal_savedisplayname",
+      "source": "client_src_components_profilemodal_tsx",
+      "target": "profilemodal_savedisplayname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/ProfileModal.tsx",
+      "source_location": "L101",
+      "weight": 1.0,
+      "_src": "client_src_components_profilemodal_tsx",
+      "_tgt": "profilemodal_savehouse",
+      "source": "client_src_components_profilemodal_tsx",
+      "target": "profilemodal_savehouse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/ProfileModal.tsx",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_src": "client_src_components_profilemodal_tsx",
+      "_tgt": "profilemodal_fmtduration",
+      "source": "client_src_components_profilemodal_tsx",
+      "target": "profilemodal_fmtduration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/ProfileModal.tsx",
+      "source_location": "L114",
+      "weight": 1.0,
+      "_src": "client_src_components_profilemodal_tsx",
+      "_tgt": "profilemodal_fmtdate",
+      "source": "client_src_components_profilemodal_tsx",
+      "target": "profilemodal_fmtdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/components/ProfileModal.tsx",
+      "source_location": "L176",
+      "weight": 1.0,
+      "_src": "client_src_components_profilemodal_tsx",
+      "_tgt": "profilemodal_resultcolor",
+      "source": "client_src_components_profilemodal_tsx",
+      "target": "profilemodal_resultcolor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/components/ProfileModal.tsx",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_src": "profilemodal_savedisplayname",
+      "_tgt": "avadakedavra_avadakedavraeffect_update",
+      "source": "profilemodal_savedisplayname",
+      "target": "avadakedavra_avadakedavraeffect_update"
+=======
       "confidence": "EXTRACTED",
       "source_file": "client/src/effects/AvadaKedavra.ts",
       "source_location": "L173",
@@ -4853,10 +6244,21 @@
       "_tgt": "claude_shared_types",
       "source": "readme_server_package",
       "target": "claude_shared_types"
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+<<<<<<< HEAD
+      "source_file": "client/src/components/HouseSelection.tsx",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_src": "client_src_components_houseselection_tsx",
+      "_tgt": "houseselection_selecthouse",
+      "source": "client_src_components_houseselection_tsx",
+      "target": "houseselection_selecthouse",
+      "confidence_score": 1.0
+=======
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
       "source_location": null,
@@ -4865,10 +6267,21 @@
       "_tgt": "claude_chesscene",
       "source": "claude_wizards_chess_project",
       "target": "claude_chesscene"
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+<<<<<<< HEAD
+      "source_file": "client/src/components/HouseSelection.tsx",
+      "source_location": "L280",
+      "weight": 1.0,
+      "_src": "client_src_components_houseselection_tsx",
+      "_tgt": "houseselection_handlemousemove",
+      "source": "client_src_components_houseselection_tsx",
+      "target": "houseselection_handlemousemove",
+      "confidence_score": 1.0
+=======
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
       "source_location": null,
@@ -4877,10 +6290,21 @@
       "_tgt": "claude_chesscoords",
       "source": "claude_wizards_chess_project",
       "target": "claude_chesscoords"
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+<<<<<<< HEAD
+      "source_file": "client/src/components/HouseSelection.tsx",
+      "source_location": "L289",
+      "weight": 1.0,
+      "_src": "client_src_components_houseselection_tsx",
+      "_tgt": "houseselection_handlemouseleave",
+      "source": "client_src_components_houseselection_tsx",
+      "target": "houseselection_handlemouseleave",
+      "confidence_score": 1.0
+=======
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
       "source_location": null,
@@ -4889,10 +6313,21 @@
       "_tgt": "claude_gamestore",
       "source": "claude_wizards_chess_project",
       "target": "claude_gamestore"
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+<<<<<<< HEAD
+      "source_file": "client/src/hooks/useStockfish.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "client_src_hooks_usestockfish_ts",
+      "_tgt": "usestockfish_usestockfish",
+      "source": "client_src_hooks_usestockfish_ts",
+      "target": "usestockfish_usestockfish",
+      "confidence_score": 1.0
+=======
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
       "source_location": null,
@@ -4901,10 +6336,969 @@
       "_tgt": "claude_housestore",
       "source": "claude_wizards_chess_project",
       "target": "claude_housestore"
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+<<<<<<< HEAD
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_mergegrouptosinglemesh",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_mergegrouptosinglemesh",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_buildlathegeometry",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_buildlathegeometry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_buildrookgroup",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_buildrookgroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L220",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_buildkinggroup",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_buildkinggroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L525",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_addqueencrown",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_addqueencrown",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L544",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_buildbishopgroup",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_buildbishopgroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L617",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_buildknightgroup",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_buildknightgroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L856",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_buildpawngroup",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_buildpawngroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L955",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_injectrimlight",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_injectrimlight",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L992",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_createpiecegroup",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1039",
+      "weight": 1.0,
+      "_src": "client_src_geometry_piecefactory_ts",
+      "_tgt": "piecefactory_disposepiecegroup",
+      "source": "client_src_geometry_piecefactory_ts",
+      "target": "piecefactory_disposepiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L199",
+      "weight": 1.0,
+      "_src": "piecefactory_buildrookgroup",
+      "_tgt": "piecefactory_mergegrouptosinglemesh",
+      "source": "piecefactory_mergegrouptosinglemesh",
+      "target": "piecefactory_buildrookgroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L499",
+      "weight": 1.0,
+      "_src": "piecefactory_buildkinggroup",
+      "_tgt": "piecefactory_mergegrouptosinglemesh",
+      "source": "piecefactory_mergegrouptosinglemesh",
+      "target": "piecefactory_buildkinggroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L606",
+      "weight": 1.0,
+      "_src": "piecefactory_buildbishopgroup",
+      "_tgt": "piecefactory_mergegrouptosinglemesh",
+      "source": "piecefactory_mergegrouptosinglemesh",
+      "target": "piecefactory_buildbishopgroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L833",
+      "weight": 1.0,
+      "_src": "piecefactory_buildknightgroup",
+      "_tgt": "piecefactory_mergegrouptosinglemesh",
+      "source": "piecefactory_mergegrouptosinglemesh",
+      "target": "piecefactory_buildknightgroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L941",
+      "weight": 1.0,
+      "_src": "piecefactory_buildpawngroup",
+      "_tgt": "piecefactory_mergegrouptosinglemesh",
+      "source": "piecefactory_mergegrouptosinglemesh",
+      "target": "piecefactory_buildpawngroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_src": "piecefactory_mergegrouptosinglemesh",
+      "_tgt": "avadakedavra_avadakedavraeffect_dispose",
+      "source": "piecefactory_mergegrouptosinglemesh",
+      "target": "avadakedavra_avadakedavraeffect_dispose"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1024",
+      "weight": 1.0,
+      "_src": "piecefactory_createpiecegroup",
+      "_tgt": "piecefactory_buildlathegeometry",
+      "source": "piecefactory_buildlathegeometry",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1019",
+      "weight": 1.0,
+      "_src": "piecefactory_createpiecegroup",
+      "_tgt": "piecefactory_buildrookgroup",
+      "source": "piecefactory_buildrookgroup",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1020",
+      "weight": 1.0,
+      "_src": "piecefactory_createpiecegroup",
+      "_tgt": "piecefactory_buildkinggroup",
+      "source": "piecefactory_buildkinggroup",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1033",
+      "weight": 1.0,
+      "_src": "piecefactory_createpiecegroup",
+      "_tgt": "piecefactory_addqueencrown",
+      "source": "piecefactory_addqueencrown",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1021",
+      "weight": 1.0,
+      "_src": "piecefactory_createpiecegroup",
+      "_tgt": "piecefactory_buildbishopgroup",
+      "source": "piecefactory_buildbishopgroup",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1018",
+      "weight": 1.0,
+      "_src": "piecefactory_createpiecegroup",
+      "_tgt": "piecefactory_buildknightgroup",
+      "source": "piecefactory_buildknightgroup",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1017",
+      "weight": 1.0,
+      "_src": "piecefactory_createpiecegroup",
+      "_tgt": "piecefactory_buildpawngroup",
+      "source": "piecefactory_buildpawngroup",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/PieceFactory.ts",
+      "source_location": "L1011",
+      "weight": 1.0,
+      "_src": "piecefactory_createpiecegroup",
+      "_tgt": "piecefactory_injectrimlight",
+      "source": "piecefactory_injectrimlight",
+      "target": "piecefactory_createpiecegroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/gltfPieceCache.ts",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_src": "client_src_geometry_gltfpiececache_ts",
+      "_tgt": "gltfpiececache_modelsready",
+      "source": "client_src_geometry_gltfpiececache_ts",
+      "target": "gltfpiececache_modelsready",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/gltfPieceCache.ts",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_src": "client_src_geometry_gltfpiececache_ts",
+      "_tgt": "gltfpiececache_onmodelsready",
+      "source": "client_src_geometry_gltfpiececache_ts",
+      "target": "gltfpiececache_onmodelsready",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/gltfPieceCache.ts",
+      "source_location": "L66",
+      "weight": 1.0,
+      "_src": "client_src_geometry_gltfpiececache_ts",
+      "_tgt": "gltfpiececache_preloadpiecemodels",
+      "source": "client_src_geometry_gltfpiececache_ts",
+      "target": "gltfpiececache_preloadpiecemodels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/geometry/gltfPieceCache.ts",
+      "source_location": "L103",
+      "weight": 1.0,
+      "_src": "client_src_geometry_gltfpiececache_ts",
+      "_tgt": "gltfpiececache_clonemodelgroup",
+      "source": "client_src_geometry_gltfpiececache_ts",
+      "target": "gltfpiececache_clonemodelgroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/WingardiumLeviosa.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "client_src_effects_wingardiumleviosa_ts",
+      "_tgt": "wingardiumleviosa_wingardiumleviosaeffect",
+      "source": "client_src_effects_wingardiumleviosa_ts",
+      "target": "wingardiumleviosa_wingardiumleviosaeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/WingardiumLeviosa.ts",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_src": "wingardiumleviosa_wingardiumleviosaeffect",
+      "_tgt": "wingardiumleviosa_wingardiumleviosaeffect_constructor",
+      "source": "wingardiumleviosa_wingardiumleviosaeffect",
+      "target": "wingardiumleviosa_wingardiumleviosaeffect_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/WingardiumLeviosa.ts",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_src": "wingardiumleviosa_wingardiumleviosaeffect",
+      "_tgt": "wingardiumleviosa_wingardiumleviosaeffect_update",
+      "source": "wingardiumleviosa_wingardiumleviosaeffect",
+      "target": "wingardiumleviosa_wingardiumleviosaeffect_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/WingardiumLeviosa.ts",
+      "source_location": "L111",
+      "weight": 1.0,
+      "_src": "wingardiumleviosa_wingardiumleviosaeffect",
+      "_tgt": "wingardiumleviosa_wingardiumleviosaeffect_iscomplete",
+      "source": "wingardiumleviosa_wingardiumleviosaeffect",
+      "target": "wingardiumleviosa_wingardiumleviosaeffect_iscomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/WingardiumLeviosa.ts",
+      "source_location": "L115",
+      "weight": 1.0,
+      "_src": "wingardiumleviosa_wingardiumleviosaeffect",
+      "_tgt": "wingardiumleviosa_wingardiumleviosaeffect_dispose",
+      "source": "wingardiumleviosa_wingardiumleviosaeffect",
+      "target": "wingardiumleviosa_wingardiumleviosaeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Fiendfyre.ts",
+      "source_location": "L145",
+      "weight": 1.0,
+      "_src": "client_src_effects_fiendfyre_ts",
+      "_tgt": "fiendfyre_fiendfyreeffect",
+      "source": "client_src_effects_fiendfyre_ts",
+      "target": "fiendfyre_fiendfyreeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Fiendfyre.ts",
+      "source_location": "L166",
+      "weight": 1.0,
+      "_src": "fiendfyre_fiendfyreeffect",
+      "_tgt": "fiendfyre_fiendfyreeffect_constructor",
+      "source": "fiendfyre_fiendfyreeffect",
+      "target": "fiendfyre_fiendfyreeffect_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Fiendfyre.ts",
+      "source_location": "L227",
+      "weight": 1.0,
+      "_src": "fiendfyre_fiendfyreeffect",
+      "_tgt": "fiendfyre_fiendfyreeffect_update",
+      "source": "fiendfyre_fiendfyreeffect",
+      "target": "fiendfyre_fiendfyreeffect_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Fiendfyre.ts",
+      "source_location": "L310",
+      "weight": 1.0,
+      "_src": "fiendfyre_fiendfyreeffect",
+      "_tgt": "fiendfyre_fiendfyreeffect_iscomplete",
+      "source": "fiendfyre_fiendfyreeffect",
+      "target": "fiendfyre_fiendfyreeffect_iscomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Fiendfyre.ts",
+      "source_location": "L314",
+      "weight": 1.0,
+      "_src": "fiendfyre_fiendfyreeffect",
+      "_tgt": "fiendfyre_fiendfyreeffect_dispose",
+      "source": "fiendfyre_fiendfyreeffect",
+      "target": "fiendfyre_fiendfyreeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Fiendfyre.ts",
+      "source_location": "L249",
+      "weight": 1.0,
+      "_src": "fiendfyre_fiendfyreeffect_update",
+      "_tgt": "fiendfyre_fiendfyreeffect_dispose",
+      "source": "fiendfyre_fiendfyreeffect_update",
+      "target": "fiendfyre_fiendfyreeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Transfiguration.ts",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_src": "client_src_effects_transfiguration_ts",
+      "_tgt": "transfiguration_transfigurationeffect",
+      "source": "client_src_effects_transfiguration_ts",
+      "target": "transfiguration_transfigurationeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Transfiguration.ts",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_src": "transfiguration_transfigurationeffect",
+      "_tgt": "transfiguration_transfigurationeffect_constructor",
+      "source": "transfiguration_transfigurationeffect",
+      "target": "transfiguration_transfigurationeffect_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Transfiguration.ts",
+      "source_location": "L82",
+      "weight": 1.0,
+      "_src": "transfiguration_transfigurationeffect",
+      "_tgt": "transfiguration_transfigurationeffect_update",
+      "source": "transfiguration_transfigurationeffect",
+      "target": "transfiguration_transfigurationeffect_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Transfiguration.ts",
+      "source_location": "L175",
+      "weight": 1.0,
+      "_src": "transfiguration_transfigurationeffect",
+      "_tgt": "transfiguration_transfigurationeffect_iscomplete",
+      "source": "transfiguration_transfigurationeffect",
+      "target": "transfiguration_transfigurationeffect_iscomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Transfiguration.ts",
+      "source_location": "L179",
+      "weight": 1.0,
+      "_src": "transfiguration_transfigurationeffect",
+      "_tgt": "transfiguration_transfigurationeffect_dispose",
+      "source": "transfiguration_transfigurationeffect",
+      "target": "transfiguration_transfigurationeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L97",
+      "weight": 1.0,
+      "_src": "client_src_effects_knightcharge_ts",
+      "_tgt": "knightcharge_knightchargeeffect",
+      "source": "client_src_effects_knightcharge_ts",
+      "target": "knightcharge_knightchargeeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L146",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect",
+      "_tgt": "knightcharge_knightchargeeffect_constructor",
+      "source": "knightcharge_knightchargeeffect",
+      "target": "knightcharge_knightchargeeffect_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L222",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect",
+      "_tgt": "knightcharge_knightchargeeffect_update",
+      "source": "knightcharge_knightchargeeffect",
+      "target": "knightcharge_knightchargeeffect_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L462",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect",
+      "_tgt": "knightcharge_knightchargeeffect_buildswordtrail",
+      "source": "knightcharge_knightchargeeffect",
+      "target": "knightcharge_knightchargeeffect_buildswordtrail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L492",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect",
+      "_tgt": "knightcharge_knightchargeeffect_iscomplete",
+      "source": "knightcharge_knightchargeeffect",
+      "target": "knightcharge_knightchargeeffect_iscomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L496",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect",
+      "_tgt": "knightcharge_knightchargeeffect_dispose",
+      "source": "knightcharge_knightchargeeffect",
+      "target": "knightcharge_knightchargeeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L329",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect_update",
+      "_tgt": "knightcharge_knightchargeeffect_buildswordtrail",
+      "source": "knightcharge_knightchargeeffect_update",
+      "target": "knightcharge_knightchargeeffect_buildswordtrail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/KnightCharge.ts",
+      "source_location": "L432",
+      "weight": 1.0,
+      "_src": "knightcharge_knightchargeeffect_update",
+      "_tgt": "knightcharge_knightchargeeffect_dispose",
+      "source": "knightcharge_knightchargeeffect_update",
+      "target": "knightcharge_knightchargeeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "client_src_effects_reducto_ts",
+      "_tgt": "reducto_reductoeffect",
+      "source": "client_src_effects_reducto_ts",
+      "target": "reducto_reductoeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect",
+      "_tgt": "reducto_reductoeffect_constructor",
+      "source": "reducto_reductoeffect",
+      "target": "reducto_reductoeffect_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L73",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect",
+      "_tgt": "reducto_reductoeffect_update",
+      "source": "reducto_reductoeffect",
+      "target": "reducto_reductoeffect_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L136",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect",
+      "_tgt": "reducto_reductoeffect_iscomplete",
+      "source": "reducto_reductoeffect",
+      "target": "reducto_reductoeffect_iscomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/Reducto.ts",
+      "source_location": "L140",
+      "weight": 1.0,
+      "_src": "reducto_reductoeffect",
+      "_tgt": "reducto_reductoeffect_dispose",
+      "source": "reducto_reductoeffect",
+      "target": "reducto_reductoeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/ExpectoPatronum.ts",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_src": "client_src_effects_expectopatronum_ts",
+      "_tgt": "expectopatronum_expectopatronumeffect",
+      "source": "client_src_effects_expectopatronum_ts",
+      "target": "expectopatronum_expectopatronumeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/ExpectoPatronum.ts",
+      "source_location": "L44",
+      "weight": 1.0,
+      "_src": "expectopatronum_expectopatronumeffect",
+      "_tgt": "expectopatronum_expectopatronumeffect_constructor",
+      "source": "expectopatronum_expectopatronumeffect",
+      "target": "expectopatronum_expectopatronumeffect_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/ExpectoPatronum.ts",
+      "source_location": "L78",
+      "weight": 1.0,
+      "_src": "expectopatronum_expectopatronumeffect",
+      "_tgt": "expectopatronum_expectopatronumeffect_update",
+      "source": "expectopatronum_expectopatronumeffect",
+      "target": "expectopatronum_expectopatronumeffect_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/ExpectoPatronum.ts",
+      "source_location": "L150",
+      "weight": 1.0,
+      "_src": "expectopatronum_expectopatronumeffect",
+      "_tgt": "expectopatronum_expectopatronumeffect_iscomplete",
+      "source": "expectopatronum_expectopatronumeffect",
+      "target": "expectopatronum_expectopatronumeffect_iscomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/ExpectoPatronum.ts",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_src": "expectopatronum_expectopatronumeffect",
+      "_tgt": "expectopatronum_expectopatronumeffect_dispose",
+      "source": "expectopatronum_expectopatronumeffect",
+      "target": "expectopatronum_expectopatronumeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/index.ts",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "client_src_effects_index_ts",
+      "_tgt": "index_createcaptureeffect",
+      "source": "client_src_effects_index_ts",
+      "target": "index_createcaptureeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L73",
+      "weight": 1.0,
+      "_src": "client_src_effects_queensword_ts",
+      "_tgt": "queensword_queenswordeffect",
+      "source": "client_src_effects_queensword_ts",
+      "target": "queensword_queenswordeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect",
+      "_tgt": "queensword_queenswordeffect_constructor",
+      "source": "queensword_queenswordeffect",
+      "target": "queensword_queenswordeffect_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L177",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect",
+      "_tgt": "queensword_queenswordeffect_update",
+      "source": "queensword_queenswordeffect",
+      "target": "queensword_queenswordeffect_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L319",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect",
+      "_tgt": "queensword_queenswordeffect_iscomplete",
+      "source": "queensword_queenswordeffect",
+      "target": "queensword_queenswordeffect_iscomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L323",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect",
+      "_tgt": "queensword_queenswordeffect_dispose",
+      "source": "queensword_queenswordeffect",
+      "target": "queensword_queenswordeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/QueenSword.ts",
+      "source_location": "L289",
+      "weight": 1.0,
+      "_src": "queensword_queenswordeffect_update",
+      "_tgt": "queensword_queenswordeffect_dispose",
+      "source": "queensword_queenswordeffect_update",
+      "target": "queensword_queenswordeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L83",
+      "weight": 1.0,
+      "_src": "client_src_effects_avadakedavra_ts",
+      "_tgt": "avadakedavra_avadakedavraeffect",
+      "source": "client_src_effects_avadakedavra_ts",
+      "target": "avadakedavra_avadakedavraeffect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_src": "avadakedavra_avadakedavraeffect",
+      "_tgt": "avadakedavra_avadakedavraeffect_constructor",
+      "source": "avadakedavra_avadakedavraeffect",
+      "target": "avadakedavra_avadakedavraeffect_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L149",
+      "weight": 1.0,
+      "_src": "avadakedavra_avadakedavraeffect",
+      "_tgt": "avadakedavra_avadakedavraeffect_update",
+      "source": "avadakedavra_avadakedavraeffect",
+      "target": "avadakedavra_avadakedavraeffect_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L249",
+      "weight": 1.0,
+      "_src": "avadakedavra_avadakedavraeffect",
+      "_tgt": "avadakedavra_avadakedavraeffect_iscomplete",
+      "source": "avadakedavra_avadakedavraeffect",
+      "target": "avadakedavra_avadakedavraeffect_iscomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L253",
+      "weight": 1.0,
+      "_src": "avadakedavra_avadakedavraeffect",
+      "_tgt": "avadakedavra_avadakedavraeffect_dispose",
+      "source": "avadakedavra_avadakedavraeffect",
+      "target": "avadakedavra_avadakedavraeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "client/src/effects/AvadaKedavra.ts",
+      "source_location": "L173",
+      "weight": 1.0,
+      "_src": "avadakedavra_avadakedavraeffect_update",
+      "_tgt": "avadakedavra_avadakedavraeffect_dispose",
+      "source": "avadakedavra_avadakedavraeffect_update",
+      "target": "avadakedavra_avadakedavraeffect_dispose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "client/index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "client_indexhtml",
+      "_tgt": "client_main_tsx",
+      "source": "client_indexhtml",
+      "target": "client_main_tsx"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "client/README.md",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "client_readme_vite_react_ts",
+      "_tgt": "client_readme_vitejs_plugin_react",
+      "source": "client_readme_vite_react_ts",
+      "target": "client_readme_vitejs_plugin_react"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "client/README.md",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "client_readme_vite_react_ts",
+      "_tgt": "client_readme_vitejs_plugin_react_swc",
+      "source": "client_readme_vite_react_ts",
+      "target": "client_readme_vitejs_plugin_react_swc"
+    },
+    {
+      "relation": "shares_theme_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "client/public/wand.webp",
+      "source_location": null,
+      "weight": 0.7,
+      "_src": "wand_image",
+      "_tgt": "hogwarts_bg_image",
+      "source": "wand_image",
+      "target": "hogwarts_bg_image"
+=======
       "confidence_score": 1.0,
       "source_file": "CLAUDE.md",
       "source_location": null,
@@ -6005,6 +8399,7 @@
       "_tgt": "theme_dark_magical",
       "source": "house_slytherin",
       "target": "theme_dark_magical"
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
     },
     {
       "relation": "stylized_version_of",
@@ -6022,12 +8417,21 @@
       "relation": "shares_theme_with",
       "confidence": "INFERRED",
       "confidence_score": 0.85,
+<<<<<<< HEAD
+      "source_file": "client/public/wand-cursor.svg",
+      "source_location": null,
+      "weight": 0.7,
+      "_src": "wand_cursor_icon",
+      "_tgt": "hogwarts_bg_image",
+      "source": "wand_cursor_icon",
+=======
       "source_file": "client/public/wand.webp",
       "source_location": null,
       "weight": 0.7,
       "_src": "wand_image",
       "_tgt": "hogwarts_bg_image",
       "source": "wand_image",
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "target": "hogwarts_bg_image"
     },
     {
@@ -6043,6 +8447,8 @@
       "target": "wand_cursor_png"
     },
     {
+<<<<<<< HEAD
+=======
       "relation": "shares_theme_with",
       "confidence": "INFERRED",
       "confidence_score": 0.85,
@@ -6055,6 +8461,7 @@
       "target": "hogwarts_bg_image"
     },
     {
+>>>>>>> 9bd040a (chore: add graphify knowledge graph (#14))
       "relation": "shares_visual_style_with",
       "confidence": "INFERRED",
       "confidence_score": 0.65,

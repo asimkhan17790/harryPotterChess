@@ -7,6 +7,7 @@ import { Howl } from 'howler';
 import type { CaptureEffect } from './types';
 import {
   createDebrisExplosion,
+  victimStoneColor,
   createBolt,
   advanceBolt,
   prog,
@@ -87,9 +88,14 @@ export class ReductoEffect implements CaptureEffect {
       // Flash
       this.flashLight.intensity = 8;
 
-      // Debris explosion
+      // Stone debris explosion — chunks match the victim's marble/obsidian
       const pos = this.victim.position.clone();
-      this.debris = createDebrisExplosion(this.group, pos, DEBRIS_COUNT, 0x8888aa);
+      this.debris = createDebrisExplosion(
+        this.group,
+        pos,
+        DEBRIS_COUNT,
+        victimStoneColor(this.victim),
+      );
       for (let i = 0; i < this.debris.length; i++) {
         this.debrisVel.push(
           new THREE.Vector3(

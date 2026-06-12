@@ -888,8 +888,9 @@ function GameLogic({
       mat.emissiveIntensity = origIntensity;
     }
     tintedMeshes.current.length = 0;
-    // Reset rim glow on all pieces
+    // Reset rim glow on all pieces (kill repeating pulse tweens first)
     for (const rim of rimUniformsMap.current.values()) {
+      gsap.killTweensOf(rim.uRimIntensity);
       gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
     }
   }, [scene, theme]);
@@ -927,7 +928,13 @@ function GameLogic({
           const rimOn = rimUniformsMap.current.get(sq);
           if (rimOn) {
             rimOn.uRimColor.value.set(0xff2200);
-            gsap.to(rimOn.uRimIntensity, { value: 2.5, duration: 0.3, ease: 'power2.out' });
+            // Urgent red pulse on capturable pieces
+            gsap.killTweensOf(rimOn.uRimIntensity);
+            gsap.fromTo(
+              rimOn.uRimIntensity,
+              { value: 1.6 },
+              { value: 2.8, duration: 0.4, ease: 'sine.inOut', repeat: -1, yoyo: true },
+            );
           }
         }
       }
@@ -1433,11 +1440,20 @@ function GameLogic({
         const rimOn = rimUniformsMap.current.get(sq);
         if (rimOn) {
           rimOn.uRimColor.value.set(0xffd700);
-          gsap.to(rimOn.uRimIntensity, { value: 2.0, duration: 0.3, ease: 'power2.out' });
+          // Breathing pulse instead of a one-shot glow — must kill on deselect
+          gsap.killTweensOf(rimOn.uRimIntensity);
+          gsap.fromTo(
+            rimOn.uRimIntensity,
+            { value: 1.2 },
+            { value: 2.4, duration: 0.55, ease: 'sine.inOut', repeat: -1, yoyo: true },
+          );
         }
         // Rim light off — any previously selected piece
         for (const [rsq, rimOff] of rimUniformsMap.current) {
-          if (rsq !== sq) gsap.to(rimOff.uRimIntensity, { value: 0.0, duration: 0.2 });
+          if (rsq !== sq) {
+            gsap.killTweensOf(rimOff.uRimIntensity);
+            gsap.to(rimOff.uRimIntensity, { value: 0.0, duration: 0.2 });
+          }
         }
       } else {
         clearHighlights();
@@ -1445,6 +1461,7 @@ function GameLogic({
         legalTargets.current = [];
         // Rim light off — all pieces
         for (const rim of rimUniformsMap.current.values()) {
+          gsap.killTweensOf(rim.uRimIntensity);
           gsap.to(rim.uRimIntensity, { value: 0.0, duration: 0.2 });
         }
       }
@@ -1892,7 +1909,7 @@ function PostFX() {
     <EffectComposer>
       <Bloom
         intensity={sharedBloomProxy.intensity}
-        luminanceThreshold={0.9}
+        luminanceThreshold={0.8}
         luminanceSmoothing={0.8}
         blendFunction={BlendFunction.ADD}
       />

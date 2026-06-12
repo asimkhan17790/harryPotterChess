@@ -26,6 +26,7 @@ import { Howl } from 'howler';
 import type { CaptureEffect } from './types';
 import {
   createDebrisExplosion,
+  victimStoneColor,
   createParticleBurst,
   prog,
   disposeMeshes,
@@ -350,9 +351,14 @@ export class KnightChargeEffect implements CaptureEffect {
       this.swordLight.color.set(0xffffff);
       this.swordLight.intensity = 8;
 
-      // Spawn stone debris
+      // Spawn stone debris matching the victim's marble/obsidian
       const pos = this.victim.position;
-      this.debris = createDebrisExplosion(this.group, pos, DEBRIS_COUNT, 0xb0a890);
+      this.debris = createDebrisExplosion(
+        this.group,
+        pos,
+        DEBRIS_COUNT,
+        victimStoneColor(this.victim),
+      );
       for (let i = 0; i < DEBRIS_COUNT; i++) {
         const a = (i / DEBRIS_COUNT) * Math.PI * 2 + Math.random() * 0.6;
         const spd = 1.8 + Math.random() * 3.5;

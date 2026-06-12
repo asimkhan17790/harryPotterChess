@@ -15,6 +15,7 @@ import { Howl } from 'howler';
 import type { CaptureEffect } from './types';
 import {
   createDebrisExplosion,
+  victimStoneColor,
   createParticleBurst,
   prog,
   disposeMeshes,
@@ -238,7 +239,12 @@ export class QueenSwordEffect implements CaptureEffect {
       this.impactSfx.play();
 
       const pos = this.victim.position;
-      this.debris = createDebrisExplosion(this.group, pos, DEBRIS_COUNT, 0xd4c8b0);
+      this.debris = createDebrisExplosion(
+        this.group,
+        pos,
+        DEBRIS_COUNT,
+        victimStoneColor(this.victim),
+      );
 
       for (let i = 0; i < DEBRIS_COUNT; i++) {
         const angle = (i / DEBRIS_COUNT) * Math.PI * 2 + Math.random() * 0.5;

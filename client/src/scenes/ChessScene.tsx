@@ -49,6 +49,8 @@ import { createCaptureEffect } from '../effects/index';
 import type { CaptureEffect } from '../effects/index';
 import { createPieceGroup, disposePieceGroup } from '../geometry/PieceFactory';
 import type { RimUniforms } from '../geometry/PieceFactory';
+import { DustPuffEffect } from '../effects/DustPuff';
+import { MOVE_PROFILES } from '../data/moveProfiles';
 import { Spring } from '../utils/Spring';
 import type { HouseName } from '../../../shared/src/index';
 
@@ -121,7 +123,6 @@ function findKingSquare(
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const ARC_HEIGHT = 1.8;
 const CANDLE_COUNT = 12;
 const CANDLE_RADIUS = 5.5;
 const CANDLE_HEIGHT = 4.0;
@@ -672,6 +673,7 @@ function GameLogic({
   const { requestMove, ready: engineReady } = useStockfish(aiColor !== null);
   // Tracks the piece currently in motion + elapsed time for procedural animation
   const movingPiece = useRef<PieceObject | null>(null);
+  const knightStamps = useRef<Map<Square, { next: number; leg: string }>>(new Map());
   const moveAnimTime = useRef(0);
   // Per-piece bob spring — keyed by square, created alongside each piece mesh
   const bobSprings = useRef(new Map<Square, Spring>());
@@ -1000,49 +1002,57 @@ function GameLogic({
 
   // Slides the rook to its post-castling square immediately after the king lands.
   // chess.js has already applied the move by this point, so we just animate the mesh.
-  const animateCastlingRook = useCallback((rookFromSq: Square, rookToSq: Square): Promise<void> => {
-    return new Promise<void>((resolve) => {
-      const rookMesh = pieceMeshes.current.get(rookFromSq);
-      if (!rookMesh) {
-        resolve();
-        return;
-      }
+  const animateCastlingRook = useCallback(
+    (rookFromSq: Square, rookToSq: Square): Promise<void> => {
+      return new Promise<void>((resolve) => {
+        const rookMesh = pieceMeshes.current.get(rookFromSq);
+        if (!rookMesh) {
+          resolve();
+          return;
+        }
 
-      const [rx, rz] = squareToXZ(rookToSq);
+        const [rx, rz] = squareToXZ(rookToSq);
 
-      // Update data structures before the tween so raycasting is correct
-      pieceMeshes.current.delete(rookFromSq);
-      pieceMeshes.current.set(rookToSq, rookMesh);
-      rookMesh.userData.square = rookToSq;
-      const rookSpring = bobSprings.current.get(rookFromSq);
-      if (rookSpring) {
-        bobSprings.current.delete(rookFromSq);
-        bobSprings.current.set(rookToSq, rookSpring);
-      }
-      const rookRim = rimUniformsMap.current.get(rookFromSq);
-      if (rookRim) {
-        rimUniformsMap.current.delete(rookFromSq);
-        rimUniformsMap.current.set(rookToSq, rookRim);
-      }
+        // Update data structures before the tween so raycasting is correct
+        pieceMeshes.current.delete(rookFromSq);
+        pieceMeshes.current.set(rookToSq, rookMesh);
+        rookMesh.userData.square = rookToSq;
+        const rookSpring = bobSprings.current.get(rookFromSq);
+        if (rookSpring) {
+          bobSprings.current.delete(rookFromSq);
+          bobSprings.current.set(rookToSq, rookSpring);
+        }
+        const rookRim = rimUniformsMap.current.get(rookFromSq);
+        if (rookRim) {
+          rimUniformsMap.current.delete(rookFromSq);
+          rimUniformsMap.current.set(rookToSq, rookRim);
+        }
 
-      gsap.killTweensOf(rookMesh.position);
-      // Low arc — rook glides with a shallow hop
-      gsap.to(rookMesh.position, {
-        x: rx,
-        z: rz,
-        duration: 0.35,
-        ease: 'power2.inOut',
-        onComplete: resolve,
+        gsap.killTweensOf(rookMesh.position);
+        // Rook profile: heavy low slide with a landing thud
+        const rookProf = MOVE_PROFILES.r;
+        gsap.to(rookMesh.position, {
+          x: rx,
+          z: rz,
+          duration: 0.45,
+          ease: rookProf.travelEase,
+          onComplete: () => {
+            activeEffects.current.push(new DustPuffEffect(scene, new THREE.Vector3(rx, 0, rz)));
+            if (rookProf.landShake > 0) cameraShake(rookProf.landShake, 0.25);
+            resolve();
+          },
+        });
+        gsap.to(rookMesh.position, {
+          y: rookProf.arc,
+          duration: 0.225,
+          ease: 'power2.out',
+          yoyo: true,
+          repeat: 1,
+        });
       });
-      gsap.to(rookMesh.position, {
-        y: 0.6,
-        duration: 0.175,
-        ease: 'power2.out',
-        yoyo: true,
-        repeat: 1,
-      });
-    });
-  }, []);
+    },
+    [scene, cameraShake],
+  );
 
   // ── Game-over detection ────────────────────────────────────────────────────
 
@@ -1195,10 +1205,17 @@ function GameLogic({
         },
       });
 
-      // 1. Anticipation dip + lift off
+      // Per-piece movement weight profile (heavy king slides, pawn hops, ...)
+      const prof =
+        MOVE_PROFILES[movingMesh.userData.pieceType as keyof typeof MOVE_PROFILES] ??
+        MOVE_PROFILES.p;
+      const travelDur = isCapture ? prof.travelDur * 0.9 : prof.travelDur;
+      const sqz = prof.squash;
+
+      // 1. Anticipation dip + lift off to the profile's arc height
       tl.to(movingMesh.position, { y: fromY - 0.04, duration: 0.06, ease: 'power2.in' }).to(
         movingMesh.position,
-        { y: ARC_HEIGHT, duration: 0.18, ease: 'pickup' },
+        { y: prof.arc, duration: prof.liftDur, ease: 'pickup' },
       );
 
       // 2. Horizontal travel — overlaps with the lift
@@ -1207,31 +1224,53 @@ function GameLogic({
         {
           x: tx,
           z: tz,
-          duration: isCapture ? 0.38 : 0.42,
-          ease: isCapture ? 'slam' : 'power2.inOut',
+          duration: travelDur,
+          ease: isCapture ? 'slam' : prof.travelEase,
         },
         0.06,
       );
 
-      // 3. Forward lean during travel (peaks at mid-arc, returns on land)
+      // 3. Forward lean during travel (higher arcs lean harder)
+      const leanAmt = 0.12 + prof.arc * 0.05;
       tl.to(
         movingMesh.rotation,
-        { x: lx * 0.2, z: lz * 0.2, duration: 0.2, ease: 'power1.inOut' },
+        { x: lx * leanAmt, z: lz * leanAmt, duration: travelDur * 0.5, ease: 'power1.inOut' },
         0.06,
-      ).to(movingMesh.rotation, { x: 0, z: 0, duration: 0.18, ease: 'power2.out' }, 0.26);
+      ).to(
+        movingMesh.rotation,
+        { x: 0, z: 0, duration: travelDur * 0.45, ease: 'power2.out' },
+        0.06 + travelDur * 0.5,
+      );
 
       // 4. Land — fast drop, elastic settle
-      const landStart = isCapture ? 0.36 : 0.4;
+      const landStart = Math.max(0.06 + prof.liftDur, 0.06 + travelDur - 0.22);
       tl.to(movingMesh.position, { y: 0, duration: 0.2, ease: 'land' }, landStart);
 
-      // 5. Squash-and-stretch on impact: squash → overshoot tall → elastic settle
+      // 4b. Landing impact — dust puff at the destination square, camera thud
+      // for heavy pieces. tl.call keeps timing on the GSAP clock (no setTimeout).
       const impactAt = landStart + 0.16;
+      tl.call(
+        () => {
+          activeEffects.current.push(new DustPuffEffect(scene, new THREE.Vector3(tx, 0, tz)));
+          if (prof.landShake > 0) cameraShake(prof.landShake, 0.25);
+        },
+        undefined,
+        impactAt,
+      );
+
+      // 5. Squash-and-stretch on impact, scaled by piece weight
       tl.to(
         movingMesh.scale,
-        { y: 0.6, x: 1.3, z: 1.3, duration: 0.06, ease: 'power3.in' },
+        { y: 1 - 0.4 * sqz, x: 1 + 0.3 * sqz, z: 1 + 0.3 * sqz, duration: 0.06, ease: 'power3.in' },
         impactAt,
       )
-        .to(movingMesh.scale, { y: 1.15, x: 0.92, z: 0.92, duration: 0.12, ease: 'power2.out' })
+        .to(movingMesh.scale, {
+          y: 1 + 0.15 * sqz,
+          x: 1 - 0.08 * sqz,
+          z: 1 - 0.08 * sqz,
+          duration: 0.12,
+          ease: 'power2.out',
+        })
         .to(movingMesh.scale, {
           y: 1.0,
           x: 1.0,
@@ -1438,11 +1477,11 @@ function GameLogic({
       const piece = movingPiece.current;
       const pieceType = piece.userData.pieceType as string;
 
-      // All pieces: subtle body bounce/gallop oscillation added on top of GSAP arc
-      // Only apply during the airborne phase (roughly 0.06–0.56s)
-      if (t > 0.06 && t < 0.58) {
-        const gallop = Math.sin(t * 18) * 0.025;
-        piece.position.y += gallop;
+      // Gallop bob on top of the GSAP arc — only for pieces whose profile has
+      // one (pawn hop, knight gallop); robed/heavy pieces glide smoothly.
+      const moveProf = MOVE_PROFILES[pieceType as keyof typeof MOVE_PROFILES] ?? MOVE_PROFILES.p;
+      if (moveProf.gallopAmp > 0 && t > 0.06 && t < 0.58) {
+        piece.position.y += Math.sin(t * moveProf.gallopFreq) * moveProf.gallopAmp;
       }
 
       // Knight only: animate 4 leg groups in a gallop cycle
@@ -1471,6 +1510,46 @@ function GameLogic({
         if (!spring) continue;
         spring.target = sq === sel ? 0.28 : 0;
         mesh.position.y = spring.update(delta);
+      }
+    }
+
+    // ── Idle breathing / sway — pieces feel alive while standing ─────────────
+    // Whole-group transforms only (merged geometry can't flex), written as
+    // absolute values each frame so GSAP's onComplete resets self-correct.
+    // Springs own position.y; idles own scale.y / rotation.z — no conflict.
+    if (!animInProgress.current) {
+      const tNow = clock.elapsedTime;
+      for (const [sq, mesh] of pieceMeshes.current) {
+        // Per-square phase hash so the army doesn't breathe in unison
+        const phase = ((sq.charCodeAt(0) * 7 + sq.charCodeAt(1) * 13) % 17) * 0.37;
+        mesh.scale.y = 1 + 0.004 * Math.sin(tNow * 1.6 + phase);
+        mesh.rotation.z = 0.006 * Math.sin(tNow * 0.9 + phase * 1.7);
+
+        // Knight horses occasionally stamp a foreleg
+        if ((mesh.userData.pieceType as string) === 'n') {
+          let stamp = knightStamps.current.get(sq);
+          if (!stamp || tNow > stamp.next + 0.4) {
+            if (stamp) {
+              const doneLeg = stamp.leg;
+              mesh.traverse((c) => {
+                if (c instanceof THREE.Group && c.userData.role === doneLeg) c.rotation.x = 0;
+              });
+            }
+            stamp = {
+              next: tNow + 4 + Math.random() * 5,
+              leg: Math.random() < 0.5 ? 'legFL' : 'legFR',
+            };
+            knightStamps.current.set(sq, stamp);
+          } else if (tNow > stamp.next) {
+            const s = Math.sin(((tNow - stamp.next) / 0.4) * Math.PI);
+            const activeLeg = stamp.leg;
+            mesh.traverse((c) => {
+              if (c instanceof THREE.Group && c.userData.role === activeLeg) {
+                c.rotation.x = s * 0.55;
+              }
+            });
+          }
+        }
       }
     }
 
